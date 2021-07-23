@@ -1,51 +1,47 @@
 const { gql } = require('apollo-server-express')
 
+
 module.exports = gql`
-    type UserChat {
+    scalar ISODate
+    type Chat {
         id: ID!
         user: ID!
         chat: String!
-        createdAt: Date!
+        replies: [String]!
+        createdAt: String!
     }
-    type UserTopic {
-        topic: String!
-        image: String
-        chats: [UserChat]!
+    type Topic {
+        keyword: String!
+        chats: [Chat]!
         chatCount: Int!
     }
     type User {
         id: ID!
         token: String!
-        name: String!
-        email: String
-        mobileNumber: String
         username: String!
-        topics: [UserTopic]!
+        topics: [Topic]!
+        friends: [User]!
+        createdAt: String!
     }
     input RegisterInput {
-        name: String!
         username: String!
         password: String!
         confirmPassword: String!
-        email: String
-        mobileNumber: String
     }
     type Query {
-        getUsers: [User]!
-        getUserTopics(userId: ID!): [UserTopic]!
-        getUserChats(userId: ID!): [UserChat]!
-        getUserTopicChats(userId: ID!, topic: String!): [UserChat]!
+        getAllUsers: [User]!
+        getUserTopics(username: String!): [Topic]!
+        getUserTopicChats(userId: ID!, topic: String!): [Chat]!
         getUser(userId: ID!): User!
     }
     type Mutation {
-        register(registerInput: RegisterInput): User!
+        register(registerInput: RegisterInput!): User!
         login(username: String!, password: String!): User!
-        createTopic(topic: String!, image: String): UserTopic!
-        createChat(chat: String!): UserChat!
-        deleteTopic(topic: String!): UserTopic!
-        deleteChat(topic: String!, chatId: String!): UserChat!
-    }
-    type Subscription{
-        newPost: Post!
+        createTopic(keyword: String!): Topic!
+        createChat(topic: String!, chat: String!): Chat!
+        deleteTopic(topic: String!): Topic!
+        deleteChat(topic: String!, chatId: String!): Chat!
+        addFriend(friendId: String!): User!
+        removeFriend(friendId: String!): User!
     }
 `

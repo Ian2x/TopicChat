@@ -1,7 +1,9 @@
 const express = require('express')
-const { ApolloServer } = require('apollo-server-express')
+// const { ApolloServer, PubSub } = require('apollo-server-express')
+const { ApolloServer, PubSub } = require('apollo-server');
+
 const mongoose = require('mongoose')
-const { PubSub } = require('apollo-server-express')
+// const { PubSub } = require('apollo-server-express')
 const multer = require('multer')
 const upload = multer({ dest: 'uploads/' })
 const cors = require('cors')
@@ -16,10 +18,13 @@ const { uploadFile, getFileStream } = require('./s3')
 const unlinkFile = util.promisify(fs.unlink)
 
 // Use pubsub for live chat?
-const pubsub = new PubSub();
+// const pubsub = new PubSub();
 
 const PORT = process.env.PORT || 5000
 
+
+/*
+// BC Error: You must `await server.start()` before calling `server.applyMiddleware()`
 // Only allow interactions from designated server (localhost:3000)
 var corsOptions = {
     origin: function (origin, callback) {
@@ -46,6 +51,28 @@ mongoose
 
 const app = express();
 server.applyMiddleware({ app });
+*/
+
+const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    context: ({ req }) => ({ req })
+});
+
+mongoose
+    .connect(MONGODB, { useNewUrlParser: true, useUnifiedTopology: true})
+    .then(() => {
+        console.log('MongoDB Connected');
+        return server.listen({ port: PORT});
+    })
+    .then(res => {
+        console.log(`Server running at ${res.url}`)
+    })
+    .catch(err=> {
+        console.error(err)
+    })
+
+
 
 // Don't need image capabilities for now
 /*
@@ -71,9 +98,9 @@ app.post('/images', cors(corsOptions), upload.single('image'), async (req, res) 
 })
 */
 
-
+/*
 app.listen({ port: PORT }, () =>
     console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
 )
-
+*/
 // node index + npm start

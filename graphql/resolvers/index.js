@@ -2,7 +2,7 @@
 const userResolvers = require('./users')
 
 module.exports = {
-    UserTopic: {
+    Topic: {
         chatCount: (parent) => parent.chats.length,
     },
     Query: {
@@ -11,7 +11,4 @@ module.exports = {
     Mutation: {
         ...userResolvers.Mutation
     },
-    Subscription: {
-        ...userResolvers.Subscription
-    }
 }
