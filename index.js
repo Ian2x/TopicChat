@@ -47,6 +47,8 @@ mongoose
 const app = express();
 server.applyMiddleware({ app });
 
+// Don't need image capabilities for now
+/*
 app.get('/images/:key', (req, res) => {
     console.log(req.params)
     const key = req.params.key
@@ -67,7 +69,7 @@ app.post('/images', cors(corsOptions), upload.single('image'), async (req, res) 
     console.log(result)
     res.send({imageURL: result.Location})
 })
-
+*/
 
 
 app.listen({ port: PORT }, () =>
