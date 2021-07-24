@@ -21,6 +21,13 @@ function byMostRecent(a, b) {
     return ((date_a < date_b) ? 1 : ((date_a > date_b) ? -1 : 0))
 }
 
+async function checkUserTopicPair(userId, keyword) {
+    const correctUser = await User.findOne({ $and: [{ "_id": mongoose.Types.ObjectId(userId) }, { "topics.keyword": keyword }] })
+    if (!correctUser) {
+        throw new AuthenticationError('No such user/topic pair')
+    }
+}
+
 module.exports = {
     Query: {
         // getAllUsers: [User]!
@@ -144,25 +151,58 @@ module.exports = {
 
         },
         // createChat(topic: String!, chat: String!): Chat!
-        async createChat(_, {topic, chat}) {
+        async createChat(_, {topic, chat: ct}, context) {
             const user = checkAuth(context)
 
             const errors = {}
 
-            if(chat.trim() === '') {
-                errors.chat = 'Chat message is required'
+            if(ct.trim() === '') {
+                errors.ct = 'Chat message is required'
                 throw new UserInputError('Chat message is required', { errors })
             }
 
             await User.updateOne(
                 {
-                    "_id": mongoose.Types.ObjectId(user.id)
+                    "_id": mongoose.Types.ObjectId(user.id),
+                    "topics.keyword": topic
                 },
                 {
-                    
+                    "$push": {
+                        "topics.$.chats": {
+                            user: user.id,
+                            chat: ct,
+                            replies:[],
+                            createdAt: new Date().toISOString()
+                        }
+                    }
                 }
             )
+
+            // get updated user (which contains the newly created topic)
+            const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
+            // return newly created topic
+            console.log(updatedUser.topics.find( ({ keyword }) => keyword === topic).chats.find( ({ chat }) => chat === ct))
+            return updatedUser.topics.find( ({ keyword }) => keyword === topic).chats.find( ({ chat }) => chat === ct)
+        },
+        // deleteTopic(keyword: String!): String!
+        async deleteTopic(_, {keyword}, context) {
+            const user = checkAuth(context);
+
+            try {
+                // check post is User's post
+                await checkUserTopicPair(user.id, keyword)
+
+                await User.updateOne(
+                    { "_id": mongoose.Types.ObjectId(user.id), "topics.keyword": keyword },
+                    { $pull: { "topics": { "keyword": keyword } } }
+                )
+                return 'Post deleted'
+
+            } catch (err) {
+                throw new Error(err);
+            }
         }
+
     }
 }
 
@@ -172,9 +212,7 @@ module.exports = {
         getUser(userId: ID!): User!
     }
     type Mutation {
-        createChat(topic: String!, chat: String!): Chat!
-        deleteTopic(topic: String!): Topic!
-        deleteChat(topic: String!, chatId: String!): Chat!
+        deleteChat(keyword: String!, chatId: String!): Chat!
         addFriend(friendId: String!): User!
         removeFriend(friendId: String!): User!
     }

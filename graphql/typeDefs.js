@@ -39,8 +39,8 @@ module.exports = gql`
         login(username: String!, password: String!): User!
         createTopic(keyword: String!): Topic!
         createChat(topic: String!, chat: String!): Chat!
-        deleteTopic(topic: String!): Topic!
-        deleteChat(topic: String!, chatId: String!): Chat!
+        deleteTopic(keyword: String!): String!
+        deleteChat(chat: String!, chatId: String!): String!
         addFriend(friendId: String!): User!
         removeFriend(friendId: String!): User!
     }
