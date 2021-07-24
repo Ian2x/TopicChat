@@ -20,7 +20,8 @@ module.exports = gql`
         token: String!
         username: String!
         topics: [Topic]!
-        friends: [User]!
+        friends: [String]!
+        friendRequests: [String]!
         createdAt: String!
     }
     input RegisterInput {
@@ -31,17 +32,20 @@ module.exports = gql`
     type Query {
         getAllUsers: [User]!
         getUserTopics(username: String!): [Topic]!
-        getUserTopicChats(userId: ID!, topic: String!): [Chat]!
+        getUserTopicChats(userId: ID!, keyword: String!): [Chat]!
         getUser(userId: ID!): User!
+        getGroupChat(keyword: String!): [Chat]!
     }
     type Mutation {
         register(registerInput: RegisterInput!): User!
         login(username: String!, password: String!): User!
         createTopic(keyword: String!): Topic!
-        createChat(topic: String!, chat: String!): Chat!
+        createChat(keyword: String!, chat: String!): Chat!
         deleteTopic(keyword: String!): String!
-        deleteChat(chat: String!, chatId: String!): String!
-        addFriend(friendId: String!): User!
-        removeFriend(friendId: String!): User!
+        deleteChat(keyword: String!, chatId: String!): String!
+        sendFriendRequest(friendId: String!): String!
+        acceptFriendRequest(friendId: String!): String!
+        rejectFriendRequest(friendId: String!): String!
+        removeFriend(friendId: String!): String!
     }
 `

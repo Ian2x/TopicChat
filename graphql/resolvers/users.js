@@ -21,12 +21,64 @@ function byMostRecent(a, b) {
     return ((date_a < date_b) ? 1 : ((date_a > date_b) ? -1 : 0))
 }
 
-async function checkUserTopicPair(userId, keyword) {
-    const correctUser = await User.findOne({ $and: [{ "_id": mongoose.Types.ObjectId(userId) }, { "topics.keyword": keyword }] })
-    if (!correctUser) {
-        throw new AuthenticationError('No such user/topic pair')
+async function userExists(userId) {
+    const user = await User.findOne({ "_id": mongoose.Types.ObjectId(userId) })
+    if (!user) {
+        throw new Error('No such user')
     }
 }
+
+async function syncFriendRelationship(id1, id2) {
+    const user1HasFriend = await User.findOne({ "_id": mongoose.Types.ObjectId(id1), "friends": id2 })
+    const user2HasFriend = await User.findOne({ "_id": mongoose.Types.ObjectId(id2), "friends": id1 })
+    if (user1HasFriend && !user2HasFriend) {
+        await User.updateOne(
+            {
+                "_id": mongoose.Types.ObjectId(id1)
+            },
+            {
+                "$pull": {
+                    "friends": id2
+                }
+            })
+    }
+    if (!user1HasFriend && user2HasFriend) {
+        await User.updateOne(
+            {
+                "_id": mongoose.Types.ObjectId(id2),
+            },
+            {
+                "$pull": {
+                    "friends": id1
+                }
+            })
+    }
+    // remove pending requests if friends already
+    if (user1HasFriend && user2HasFriend) {
+        await User.updateOne(
+            {
+                "_id": mongoose.Types.ObjectId(id1)
+            },
+            {
+                "$pull": {
+                    "friendRequests": id2
+                }
+            }
+        )
+        await User.updateOne(
+            {
+                "_id": mongoose.Types.ObjectId(id2)
+            },
+            {
+                "$pull": {
+                    "friendRequests": id1
+                }
+            }
+        )
+    }
+
+}
+
 
 module.exports = {
     Query: {
@@ -51,7 +103,9 @@ module.exports = {
             } catch (err) {
                 throw new Error(err);
             }
-        }
+        },
+        // getUserTopicChats(userId: ID!, topic: String!): [Chat]!
+        
     },
     Mutation: {
         // register(registerInput: RegisterInput): User!
@@ -77,6 +131,7 @@ module.exports = {
                 username,
                 password,
                 friends: [],
+                friendRequests:[],
                 createdAt: new Date().toISOString()
             });
 
@@ -151,7 +206,7 @@ module.exports = {
 
         },
         // createChat(topic: String!, chat: String!): Chat!
-        async createChat(_, {topic, chat: ct}, context) {
+        async createChat(_, {keyword: kw, chat: ct}, context) {
             const user = checkAuth(context)
 
             const errors = {}
@@ -164,7 +219,7 @@ module.exports = {
             await User.updateOne(
                 {
                     "_id": mongoose.Types.ObjectId(user.id),
-                    "topics.keyword": topic
+                    "topics.keyword": kw
                 },
                 {
                     "$push": {
@@ -181,28 +236,212 @@ module.exports = {
             // get updated user (which contains the newly created topic)
             const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
             // return newly created topic
-            console.log(updatedUser.topics.find( ({ keyword }) => keyword === topic).chats.find( ({ chat }) => chat === ct))
-            return updatedUser.topics.find( ({ keyword }) => keyword === topic).chats.find( ({ chat }) => chat === ct)
+            return updatedUser.topics.find( ({ keyword }) => keyword === kw).chats.find( ({ chat }) => chat === ct)
         },
         // deleteTopic(keyword: String!): String!
         async deleteTopic(_, {keyword}, context) {
             const user = checkAuth(context);
 
             try {
-                // check post is User's post
-                await checkUserTopicPair(user.id, keyword)
-
-                await User.updateOne(
+                const { nModified } = await User.updateOne(
                     { "_id": mongoose.Types.ObjectId(user.id), "topics.keyword": keyword },
                     { $pull: { "topics": { "keyword": keyword } } }
                 )
-                return 'Post deleted'
+                if (nModified===0) return 'Deletion failed'
+                else return 'Topic deleted'
 
             } catch (err) {
                 throw new Error(err);
             }
-        }
+        },
+        // deleteChat(keyword: String!, chatId: String!): String!
+        async deleteChat(_, { keyword, chatId }, context) {
+            const user = checkAuth(context);
 
+            try {                
+                const { nModified } = await User.updateOne(
+                    { "_id": mongoose.Types.ObjectId(user.id), "topics.keyword": keyword, "topics.chats._id": mongoose.Types.ObjectId(chatId)},
+                    { $pull: {"topics.$.chats": { "_id": mongoose.Types.ObjectId(chatId)}}}
+                )
+                if (nModified===0) return 'Deletion failed'
+                else return 'Chat deleted'
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        // sendFriendRequest(friendId: String!): String!
+        async sendFriendRequest(_, { friendId }, context) {
+            const user = checkAuth(context);
+            
+            // check not self
+            if (user.id === friendId) throw new UserInputError("Can't send friend request to self")
+
+            // check legit id
+            userExists(friendId)
+
+            // check not already friends
+            const alreadyFriends1 = await User.findOne(
+                { "_id": mongoose.Types.ObjectId(user.id) , "friends": friendId }
+            )
+            const alreadyFriends2 = await User.findOne(
+                { "_id": mongoose.Types.ObjectId(friendId) ,  "friends": user.id }
+            )
+            if (alreadyFriends1 && alreadyFriends2) return 'Already friends'
+
+            // check they haven't sent a friend request, in which case just become friends
+            if (await User.findOne({"_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId})) {
+                // add to friend list
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(user.id),
+                    },
+                    {
+                        "$addToSet": {
+                            "friends": friendId
+                        }
+                    }
+                )
+                // add to friend's friend list
+                const { nModified: nModified2 } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(friendId),
+                    },
+                    {
+                        "$addToSet": {
+                            "friends": user.id
+                        }
+                    }
+                )
+                syncFriendRelationship(user.id, friendId)
+                const errors = ''
+                if (nModified===0) errors+='Adding friend failed, '
+                if (nModified2===0) errors+='Adding to friend\'s friend list failed, '
+                if (errors!='') return errors
+                else return 'Added friend'
+            }
+
+            try {
+                // send friend request
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(friendId),
+                    },
+                    {
+                        "$addToSet": {
+                            "friendRequests": user.id
+                        }
+                    }
+                )
+                syncFriendRelationship(user.id, friendId)
+                if (nModified===0) return 'Friend request failed, a friend request has most likely already been sent'
+                else return 'Friend request sent'
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        // acceptFriendRequest(friendId: String!): String!
+        async acceptFriendRequest(_, { friendId }, context) {
+            const user = checkAuth(context)
+
+            try {
+
+                // check friendId is really in pending friend requests
+                const isPendingFriend = await User.findOne({
+                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId
+                })
+                if(!isPendingFriend) return 'No such pending friend request'
+
+                // add to friend list
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(user.id),
+                    },
+                    {
+                        "$addToSet": {
+                            "friends": friendId
+                        }
+                    }
+                )
+                // add to friend's friend list
+                const { nModified: nModified2 } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(friendId),
+                    },
+                    {
+                        "$addToSet": {
+                            "friends": user.id
+                        }
+                    }
+                )
+                syncFriendRelationship(user.id, friendId)
+                const errors = ''
+                if (nModified===0) errors+='Adding friend failed, '
+                if (nModified2===0) errors+='Adding to friend\'s friend list failed, '
+                if (nModified2===0) errors+='Removing from pending friends failed'
+                if (errors!='') return errors
+                else return 'Added friend'
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        // rejectFriendRequest(friendId: String!): String!
+        async rejectFriendRequest(_, { friendId }, context) {
+            const user = checkAuth(context)
+
+            try {
+                // check friendId is really in pending friend requests
+                const isPendingFriend = await User.findOne({
+                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId
+                })
+                if(!isPendingFriend) return 'No such pending friend request'
+
+                // remove friend request
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(user.id),
+                    },
+                    {
+                        $pull: {
+                            "friendRequests": friendId
+                        }
+                    }
+                )
+                syncFriendRelationship(user.id, friendId)
+                if (nModified===0) return 'Failed to reject friend request'
+                else return 'Rejected friend request'
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        // removeFriend(friendId: String!): User!
+        async removeFriend(_, { friendId }, context) {
+            const user = checkAuth(context)
+
+            try {
+                // check friendId is really in pending friend requests
+                const isFriend = await User.findOne({
+                    "_id": mongoose.Types.ObjectId(user.id), "friends": friendId
+                })
+                if(!isFriend) return 'No such friend'
+
+                // remove friend
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(user.id)
+                    },
+                    {
+                        $pull: {
+                            "friends": friendId
+                        }
+                    }
+                )
+                syncFriendRelationship(user.id, friendId)
+                if (nModified===0) return 'Failed to remove friend'
+                else return 'Removed friend'
+            } catch (err) {
+                throw new Error(err);
+            }
+        }
     }
 }
 
@@ -210,10 +449,5 @@ module.exports = {
     type Query {
         getUserTopicChats(userId: ID!, topic: String!): [Chat]!
         getUser(userId: ID!): User!
-    }
-    type Mutation {
-        deleteChat(keyword: String!, chatId: String!): Chat!
-        addFriend(friendId: String!): User!
-        removeFriend(friendId: String!): User!
     }
 */

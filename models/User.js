@@ -8,6 +8,7 @@ const userSchema = new Schema({
     password: String,
     topics: [{ keyword: String, chats: [{ chat: String, replies: [String], createdAt: String }]}], // no images within each topic for now
     friends: [String], // store friend ids
+    friendRequests: [String],
     createdAt: String
 })
 
