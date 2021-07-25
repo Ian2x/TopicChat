@@ -30,11 +30,12 @@ module.exports = gql`
         confirmPassword: String!
     }
     type Query {
+        getUser(userId: ID!): User!
         getAllUsers: [User]!
         getUserTopics(username: String!): [Topic]!
         getUserTopicChats(userId: ID!, keyword: String!): [Chat]!
-        getUser(userId: ID!): User!
         getGroupChat(keyword: String!): [Chat]!
+        getSuggestedTopics: [Topic]!
     }
     type Mutation {
         register(registerInput: RegisterInput!): User!

@@ -79,9 +79,18 @@ async function syncFriendRelationship(id1, id2) {
 
 }
 
+// QUERY AND MUTATION RESOLVERS (BELOW)
 
 module.exports = {
     Query: {
+        // getUser(userId): User!
+        async getUser(_, {userId}) {
+            try {
+                return await User.findOne({"_id": mongoose.Types.ObjectId(userId)})
+            } catch (err) {
+                throw new Error(err)
+            }
+        },
         // getAllUsers: [User]!
         async getAllUsers() {
             try {
@@ -104,8 +113,29 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        // getUserTopicChats(userId: ID!, topic: String!): [Chat]!
-        
+        // getUserTopicChats(userId: ID!, keyword: String!): [Chat]!
+        async getUserTopicChats(_, {userId, keyword }) {
+            try {
+                const user = await User.findOne({"_id": mongoose.Types.ObjectId(userId)})
+                if (!user) throw new Error("Invalid userid")
+                const chats = user.topics.find( topic => topic.keyword === keyword ).chats
+                console.log(chats)
+                console.log(!chats)
+                if (!chats) throw new Error("User does not have such topic")
+                console.log("good")
+                return chats
+            } catch (err) {
+                throw new Error(err)
+            }
+        },
+        // getGroupChat(keyword: String!): [Chat]!
+        async getGroupChat(_, {keyword}) {
+            try {
+
+            } catch (err) {
+                throw new Error(err)
+            }
+        }
     },
     Mutation: {
         // register(registerInput: RegisterInput): User!
@@ -224,9 +254,9 @@ module.exports = {
                 {
                     "$push": {
                         "topics.$.chats": {
-                            user: user.id,
+                            user: mongoose.Types.ObjectId(user.id),
                             chat: ct,
-                            replies:[],
+                            replies:["testing"],
                             createdAt: new Date().toISOString()
                         }
                     }
@@ -444,10 +474,3 @@ module.exports = {
         }
     }
 }
-
-/*
-    type Query {
-        getUserTopicChats(userId: ID!, topic: String!): [Chat]!
-        getUser(userId: ID!): User!
-    }
-*/
