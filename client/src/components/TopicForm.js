@@ -6,6 +6,8 @@ import { useMutation } from '@apollo/react-hooks'
 import { FETCH_USER_QUERY } from '../util/graphql'
 import { useForm } from '../util/hooks'
 
+const _ = require('lodash');
+
 function TopicForm({ userId }) {
 
     const [errors, setErrors] = useState({});
@@ -18,20 +20,22 @@ function TopicForm({ userId }) {
 
     const [createTopic] = useMutation(CREATE_TOPIC_MUTATION, {
         variables: values,
-        update(proxy, result) {
-            const data = proxy.readQuery({
+        update(cache, result) {
+            const data = _.cloneDeep(
+            cache.readQuery({
                 query: FETCH_USER_QUERY,
                 variables: {
                     userId
                 }
             })
+            )
             console.log("TESTER", result.data.createTopic)
             console.log(data.getUser.topics)
             console.log(data)
-            data.getUser.topics = [result.data.createTopic, ...data.getUser.topics]
-            proxy.writeQuery({
+            data.getUser.topics = [...data.getUser.topics, result.data.createTopic]
+            cache.writeQuery({
                 query: FETCH_USER_QUERY,
-                data,
+                data: {...data},
                 variables: { userId }
             });
 
@@ -42,6 +46,14 @@ function TopicForm({ userId }) {
             console.log(err)
             setErrors(err.graphQLErrors[0].extensions.exception.errors);
         },
+
+        refetchQueries: [
+            {
+                query: FETCH_USER_QUERY
+                ,
+                variables: { userId}
+            }
+        ]
     })
 
     function createTopicCallback() {

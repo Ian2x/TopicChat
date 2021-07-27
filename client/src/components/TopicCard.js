@@ -4,7 +4,7 @@ import { Card } from 'semantic-ui-react'
 import { AuthContext } from '../context/auth'
 import TopicDeleteButton from './TopicDeleteButton'
 
-function TopicCard({ topic: { id, keyword }, topicCreatorId }) {
+function TopicCard({ topic: { keyword }, topicCreatorId }) {
 
     const { user } = useContext(AuthContext)
     return (
