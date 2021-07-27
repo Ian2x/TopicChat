@@ -1,0 +1,23 @@
+  
+
+.page-title {
+    display: block !important;
+    margin-top: 10px !important;
+    margin-bottom: 20px !important;
+    text-align: center;
+    font-size: 2rem;
+  }
+  
+  .form-container {
+    width: 350px;
+    margin: auto;
+  }
+  
+  .topic-image {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .ui.card>.image>img, .ui.cards>.card>.image>img {
+    height: 100%
+  }

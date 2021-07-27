@@ -15,6 +15,7 @@ module.exports = gql`
         createdAt: String!
     }
     type Topic {
+        id: ID!
         keyword: String!
         chats: [Chat]!
         chatCount: Int!

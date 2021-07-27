@@ -1,6 +1,7 @@
 const express = require('express')
 // const { ApolloServer, PubSub } = require('apollo-server-express')
-const { ApolloServer, PubSub } = require('apollo-server');
+const { ApolloServer } = require('apollo-server');
+
 
 const mongoose = require('mongoose')
 // const { PubSub } = require('apollo-server-express')
@@ -53,6 +54,9 @@ const app = express();
 server.applyMiddleware({ app });
 */
 
+
+
+
 const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -71,6 +75,9 @@ mongoose
     .catch(err=> {
         console.error(err)
     })
+
+
+
 
 
 
