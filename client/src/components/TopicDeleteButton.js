@@ -23,12 +23,8 @@ function DeleteButton({ keyword, userId }) {
                 }
             })
             )
-            const toBeEvicted = data.getUser.topics.filter(t => String(t.keyword) === String(keyword))[0]
-            console.log(keyword)
-            console.log(data)
             
             data.getUser.topics = [...data.getUser.topics.filter(t => String(t.keyword) !== String(keyword))]
-            console.log(data.getUser.topics)
             
             proxy.writeQuery({
                 query: FETCH_USER_QUERY,
@@ -37,26 +33,6 @@ function DeleteButton({ keyword, userId }) {
                     userId
                 }
             })
-            /*
-            proxy.modify({
-                id: userId,
-                fields: {
-                    topics(existingTopics, { readField }) {
-                      return existingTopics.filter(
-                        topicRef => keyword !== readField('keyword', topicRef)
-                      );
-                    },
-                }
-            })
-            */
-           /*
-           proxy.evict({id: 'User:60fb1119c07ae7131c54346f.topics.2'})
-           */
-          /*
-          proxy.refetchQueries: [{
-
-          }]
-          */
         },
         variables: {
             keyword

@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { Grid, Transition, Header } from 'semantic-ui-react';
 import { useQuery } from '@apollo/react-hooks'
+import { Link } from 'react-router-dom'
 
 import { AuthContext } from '../context/auth'
 import TopicCard from '../components/TopicCard'
@@ -11,8 +12,6 @@ function UserProfile(props) {
     const userId = props.match.params.userId;
     const { user: loginUser } = useContext(AuthContext);
 
-    console.log(userId)
-
     const { loading: loadingUser, data: dataUser } = useQuery(FETCH_USER_QUERY, {
         variables: {
             userId
@@ -20,12 +19,8 @@ function UserProfile(props) {
     })
 
     if (loadingUser) return 'Loading user...';
-    console.log("dataUser:\n", dataUser)
     const { getUser: { username } } = dataUser;
     const { getUser: { topics } } = dataUser;
-
-    console.log(username)
-    console.log(topics)
 
     return (
         <Grid celled='internally'>
@@ -40,20 +35,15 @@ function UserProfile(props) {
                 </Grid.Row>
             )}
             <Grid.Row columns={3}>
-                {loadingUser ? (
-                    <h1>Loading topics</h1>
-                ) : (
-                    <Transition.Group>
-                        {
-                            topics && topics.map((topic) => (
-                                <Grid.Column key={topic.keyword}>
-                                    <TopicCard topic={topic} topicCreatorId={userId} />
-                                </Grid.Column>
-                            ))
-                        }
-                    </Transition.Group>
-                )
-                }
+                <Transition.Group>
+                    {
+                        topics && topics.map((topic) => (
+                            <Grid.Column key={topic.keyword} as={Link} to={`/users/${loginUser.id}/${topic.keyword}`}>
+                                <TopicCard topic={topic} topicCreatorId={userId} />
+                            </Grid.Column>
+                        ))
+                    }
+                </Transition.Group>
             </Grid.Row>
             <Grid.Row>
                 {

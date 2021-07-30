@@ -10,6 +10,7 @@ module.exports = gql`
     type Chat {
         id: ID!
         user: ID!
+        username: String!
         chat: String!
         replies: [ChatReply]!
         createdAt: String!

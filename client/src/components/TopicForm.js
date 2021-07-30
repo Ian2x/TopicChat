@@ -16,8 +16,6 @@ function TopicForm({ userId }) {
         keyword: '',
     })
 
-    console.log("TEST 0")
-
     const [createTopic] = useMutation(CREATE_TOPIC_MUTATION, {
         variables: values,
         update(cache, result) {
@@ -29,9 +27,6 @@ function TopicForm({ userId }) {
                 }
             })
             )
-            console.log("TESTER", result.data.createTopic)
-            console.log(data.getUser.topics)
-            console.log(data)
             data.getUser.topics = [...data.getUser.topics, result.data.createTopic]
             cache.writeQuery({
                 query: FETCH_USER_QUERY,

@@ -13,6 +13,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserProfile from './pages/UserProfile';
+import GroupChat from './pages/GroupChat';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <AuthRoute exact path='/login' component={Login} />
           <AuthRoute exact path='/register' component={Register} />
           <Route exact path='/users/:userId' component={UserProfile}/>
+          <Route exact path='/users/:userId/:keyword' component={GroupChat}/>
         </Container>
       </Router>
     </AuthProvider>

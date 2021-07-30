@@ -325,6 +325,7 @@ module.exports = {
                     "$push": {
                         "topics.$.chats": {
                             user: mongoose.Types.ObjectId(user.id),
+                            username: user.username,
                             chat: ct,
                             replies: [],
                             createdAt: new Date().toISOString()
@@ -372,9 +373,6 @@ module.exports = {
                 
                 // get updated user (which contains the newly created topic)
                 const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(chatUserId) })
-                console.log(chatId)
-                console.log(updatedUser.topics.find(({ keyword }) => keyword === kw).chats.map(({ _id }) => _id))
-                console.log(updatedUser.topics.find(({ keyword }) => keyword === kw).chats.map(({ _id }) => String(_id) == String(chatId)))
                 // return newly created reply
                 return updatedUser.topics.find(({ keyword }) => keyword === kw).chats.find(({ _id }) => String(_id) == String(chatId)).replies.find(({ reply }) => reply === rp)
 
