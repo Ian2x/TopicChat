@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useQuery } from '@apollo/react-hooks'
 import { List, Message, Header, Icon, Divider, Container } from 'semantic-ui-react';
 import moment from 'moment'
@@ -11,6 +11,7 @@ import ChatForm from '../components/ChatForm'
 import ChatDeleteButton from '../components/ChatDeleteButton'
 
 function GroupChat(props) {
+
     const keyword = props.match.params.keyword;
     const pageUserId = props.match.params.userId;
     const { user } = useContext(AuthContext);
@@ -20,6 +21,26 @@ function GroupChat(props) {
             keyword
         },
     })
+
+    // TEST BELOW
+    /*
+    const scrollRef = useRef(null);
+    useEffect(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollIntoView({ behaviour: "smooth" });
+        }
+    }, [data.getGroupChat]);
+    */
+    //
+
+    // TEST BELOW
+    const AlwaysScrollToBottom = () => {
+        const elementRef = useRef();
+        useEffect(() => elementRef.current.scrollIntoView());
+        return <div ref={elementRef} />;
+    };
+    //
+
 
     if(!user || user.id !== pageUserId) return 'Not allowed to view'
 
@@ -35,7 +56,7 @@ function GroupChat(props) {
                 <Icon name='users' circular />
                 <Header.Content>{keyword}</Header.Content>
             </Header>
-            <List divided relaxed>
+            <List divided relaxed style={{height: '700px', overflow: 'scroll'}}>
                 {
                     getGroupChat && getGroupChat.reverse().map((chat) => (
                         <List.Item key = {chat.id}>
@@ -84,6 +105,7 @@ function GroupChat(props) {
                         </List.Item>
                     ))
                 }
+                <AlwaysScrollToBottom />
             </List>
             <Container style={{paddingBottom: '100px'}}>
                 <ChatForm keyword={keyword}/>
