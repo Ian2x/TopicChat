@@ -1,85 +1,100 @@
-import React, { useState } from 'react'
-import { Button } from 'semantic-ui-react';
+import React, { useState, useContext } from 'react'
+import { Button, List, Message } from 'semantic-ui-react';
 import Modal from 'react-modal';
+import moment from 'moment'
 
 
-function ReplyModal({ chat: {id, user, username, chat, replies}, keyword, replierId }) {
+import styles from '../App.css';
+import ReplyForm from './ReplyForm'
+import { AuthContext } from '../context/auth'
+import ReplyDeleteButton from '../components/ReplyDeleteButton'
 
-    Modal.setAppElement('#root')
 
-    const [showModal, setShowModal] = useState(false)
+function ReplyModal({ chat: { id: chatId, user: chatUserId, username, chat, replies }, keyword }) {
 
-    function openModal() {
-        setShowModal(true)
-    }
+  const { user } = useContext(AuthContext);
 
-    function closeModal() {
-        setShowModal(false)
-    }
+  Modal.setAppElement('#root')
 
-    return(
-        <>
-            <Button onClick={()=>openModal()}>
-                Reply
-            </Button>
-            <Modal 
-                isOpen={showModal}
-                contentLabel="onRequestClose Example"
-                onRequestClose={()=>closeModal()}
-                shouldCloseOnOverlayClick={true}
-            >
-                <p>Modal text!</p>
-                <button onClick={()=>closeModal()}>Close Modal</button>
-            </Modal>
-        </>
-    )
+  const [showModal, setShowModal] = useState(false)
+
+  function openModal() {
+    setShowModal(true)
+  }
+
+  function closeModal() {
+    setShowModal(false)
+  }
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Button onClick={() => openModal()} style={{ left: "50%" }}>
+          Reply
+        </Button>
+      </div>
+      <Modal
+        className={styles.replyModal}
+        isOpen={showModal}
+        contentLabel="onRequestClose Example"
+        onRequestClose={() => closeModal()}
+        shouldCloseOnOverlayClick={true}
+        style={{
+          overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.75)'
+          },
+          content: {
+            position: 'absolute',
+            top: '200px',
+            left: '200px',
+            right: '200px',
+            bottom: '200px',
+            border: '1px solid #ccc',
+            background: '#fff',
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            borderRadius: '4px',
+            outline: 'none',
+            padding: '20px'
+          }
+        }}
+      >
+        <button onClick={() => closeModal()}>Back</button>
+        <List divided relaxed>
+          {
+            replies.length > 0 && replies.map((reply) => (
+              <List.Item key={reply.id}>
+                <List.Content>
+                  <Message color='teal'>
+                    <Message.Item>
+                      <div style={{ float: 'left' }}>
+                        {reply.reply}
+                      </div>
+                      <div style={{ float: 'right' }}>
+                        {reply.username}
+                      </div>
+                      <br />
+                      <p>
+                        {moment(reply.createdAt).fromNow()}
+                      </p>
+                    </Message.Item>
+                  </Message>
+                  {user && user.id === reply.user && (
+                    <ReplyDeleteButton chatUserId={chatUserId} keyword={keyword} chatId={chatId} replyId={reply.id} replyUser={reply.user} />)}
+                </List.Content>
+              </List.Item>
+            ))
+          }
+        </List>
+        <ReplyForm chatUserId={chatUserId} keyword={keyword} chatId={chatId} />
+      </Modal>
+    </>
+  )
 }
-
-// replyToChat(chatUserId: ID!, keyword: String!, chatId: ID!, reply: String!): ChatReply!
 
 export default ReplyModal
-
-/*
-ReactModal.setAppElement('#main');
-
-class ExampleApp extends React.Component {
-  constructor () {
-    super();
-    this.state = {
-      showModal: false
-    };
-    
-    this.handleOpenModal = this.handleOpenModal.bind(this);
-    this.handleCloseModal = this.handleCloseModal.bind(this);
-  }
-  
-  handleOpenModal () {
-    this.setState({ showModal: true });
-  }
-  
-  handleCloseModal () {
-    this.setState({ showModal: false });
-  }
-  
-  render () {
-    return (
-      <div>
-        <button onClick={this.handleOpenModal}>Trigger Modal</button>
-        <ReactModal 
-           isOpen={this.state.showModal}
-           contentLabel="onRequestClose Example"
-           onRequestClose={this.handleCloseModal}
-           shouldCloseOnOverlayClick={true}
-        >
-          <p>Modal text!</p>
-          <button onClick={this.handleCloseModal}>Close Modal</button>
-        </ReactModal>
-      </div>
-    );
-  }
-}
-
-const props = {};
-
-ReactDOM.render(<ExampleApp {...props} />, document.getElementById('main'))
-*/

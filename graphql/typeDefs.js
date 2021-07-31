@@ -3,7 +3,9 @@ const { gql } = require('apollo-server-express')
 
 module.exports = gql`
     type ChatReply {
+        id: ID!
         user: ID!
+        username: String!
         reply: String!
         createdAt: String!
     }
@@ -51,10 +53,11 @@ module.exports = gql`
         createChat(keyword: String!, chat: String!): Chat!
         replyToChat(chatUserId: ID!, keyword: String!, chatId: ID!, reply: String!): ChatReply!
         deleteTopic(keyword: String!): String!
-        deleteChat(keyword: String!, chatId: String!): String!
-        sendFriendRequest(friendId: String!): String!
-        acceptFriendRequest(friendId: String!): String!
-        rejectFriendRequest(friendId: String!): String!
-        removeFriend(friendId: String!): String!
+        deleteChat(keyword: String!, chatId: ID!): String!
+        deleteReply(chatUserId: ID!, keyword: String!, chatId: ID!, replyId: ID!, replyUser: ID!): String!
+        sendFriendRequest(friendId: ID!): String!
+        acceptFriendRequest(friendId: ID!): String!
+        rejectFriendRequest(friendId: ID!): String!
+        removeFriend(friendId: ID!): String!
     }
 `

@@ -356,6 +356,7 @@ module.exports = {
                         "$push": {
                             "topics.$[topic].chats.$[chat].replies": {
                                 user: user.id,
+                                username: user.username,
                                 reply: rp,
                                 createdAt: new Date().toISOString()
                             }
@@ -426,7 +427,37 @@ module.exports = {
                 )
                 if (nModified === 0) return 'Deletion failed'
                 else return 'Chat deleted'
-            } catch (err) {
+            } catch(err) {
+                throw new Error(err);
+            }
+        },
+        // deleteReply(chatUserId: ID!, keyword: String!, chatId: ID!, replyId: ID!, replyUser: ID!): String!
+        async deleteReply(_, {chatUserId, keyword, chatId, replyId, replyUser}, context) {
+            const user = checkAuth(context);
+
+            if(user.id !== replyUser) return 'Not allowed to delete someone else\'s reply'
+
+            try {
+                // could be quite slow (searching over all of chatUser)
+                const { nModified } = await User.updateOne(
+                    {
+                        "_id": mongoose.Types.ObjectId(chatUserId),
+                        "topics.keyword": keyword,
+                        "topics.chats._id": mongoose.Types.ObjectId(chatId),
+                        "topics.chats.replies._id": mongoose.Types.ObjectId(replyId)
+                    },
+                    {
+                        $pull: {
+                            "topics.$[].chats.$[].replies": {
+                                "_id": replyId
+                            }
+                        }
+                    }
+                )
+
+                if (nModified === 0) return 'Deletion failed'
+                else return 'Reply deleted'
+            } catch(err) {
                 throw new Error(err);
             }
         },

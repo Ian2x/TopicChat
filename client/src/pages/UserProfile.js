@@ -30,7 +30,7 @@ function UserProfile(props) {
             {loginUser && loginUser.id === userId && (
                 <Grid.Row>
                     <Grid.Column>
-                        <TopicForm userId={userId} />
+                        <TopicForm/>
                     </Grid.Column>
                 </Grid.Row>
             )}

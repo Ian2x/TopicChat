@@ -1,12 +1,14 @@
 import React, { useContext } from 'react';
 import { useQuery } from '@apollo/react-hooks'
-import gql from 'graphql-tag';
-import { List, Message, Popup, Header, Icon, Divider } from 'semantic-ui-react';
+import { List, Message, Header, Icon, Divider, Container } from 'semantic-ui-react';
 import moment from 'moment'
 
 
 import { AuthContext } from '../context/auth'
 import ReplyModal from '../components/ReplyModal'
+import { FETCH_GROUP_CHAT_QUERY } from '../util/graphql'
+import ChatForm from '../components/ChatForm'
+import ChatDeleteButton from '../components/ChatDeleteButton'
 
 function GroupChat(props) {
     const keyword = props.match.params.keyword;
@@ -27,8 +29,6 @@ function GroupChat(props) {
 
     if(getGroupChat.length===0) return 'no messages in this groupchat'
 
-    console.log(getGroupChat)
-
     return(
         <>
             <Header as='h2' icon textAlign='center'>
@@ -37,10 +37,10 @@ function GroupChat(props) {
             </Header>
             <List divided relaxed>
                 {
-                    getGroupChat && getGroupChat.map((chat) => (
+                    getGroupChat && getGroupChat.reverse().map((chat) => (
                         <List.Item key = {chat.id}>
-                            <List.Content style={{padding: '10px'}}>
-                                <Message color='teal'style={{paddingBottom: '35px'}}>
+                            <List.Content style={{padding: '5px'}}>
+                                <Message color='teal' style={{paddingBottom: '15px'}}>
                                     <Message.Header>
                                         {chat.chat}
                                     </Message.Header>
@@ -64,14 +64,20 @@ function GroupChat(props) {
                                         }
                                         {
                                             chat.replies.length>1 && (
+                                                <>
                                                 <div>
                                                     {chat.replies[1].reply}
                                                 </div>
+                                                <div>
+                                                    ...
+                                                </div>
+                                                </>
                                             )
                                         }
+                                        {user && user.id === chat.user && (
+                                            <ChatDeleteButton keyword={keyword} chatId={chat.id}/>)}
                                     </Message.Item>
-                                    <br/>
-                                    <ReplyModal chat={chat} keyword={keyword} replierId = {user.id}/>
+                                    <ReplyModal chat={chat} keyword={keyword}/>
   
                                 </Message>
                             </List.Content>
@@ -79,23 +85,11 @@ function GroupChat(props) {
                     ))
                 }
             </List>
+            <Container style={{paddingBottom: '100px'}}>
+                <ChatForm keyword={keyword}/>
+            </Container>
         </>
     )
 }
-
-const FETCH_GROUP_CHAT_QUERY = gql`
-query getGroupChat($keyword: String!) {
-    getGroupChat(keyword: $keyword) {
-        id
-        user
-        username
-        replies {
-            reply
-        }
-        chat
-        createdAt
-    }
-}
-`
 
 export default GroupChat;

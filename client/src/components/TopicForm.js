@@ -1,14 +1,17 @@
 import gql from 'graphql-tag'
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { Button, Form } from 'semantic-ui-react'
 import { useMutation } from '@apollo/react-hooks'
 
+import { AuthContext } from '../context/auth'
 import { FETCH_USER_QUERY } from '../util/graphql'
 import { useForm } from '../util/hooks'
 
 const _ = require('lodash');
 
-function TopicForm({ userId }) {
+function TopicForm() {
+
+    const { user } = useContext(AuthContext);
 
     const [errors, setErrors] = useState({});
 
@@ -20,18 +23,16 @@ function TopicForm({ userId }) {
         variables: values,
         update(cache, result) {
             const data = _.cloneDeep(
-            cache.readQuery({
-                query: FETCH_USER_QUERY,
-                variables: {
-                    userId
-                }
-            })
+                cache.readQuery({
+                    query: FETCH_USER_QUERY,
+                    variables: user.id
+                })
             )
             data.getUser.topics = [...data.getUser.topics, result.data.createTopic]
             cache.writeQuery({
                 query: FETCH_USER_QUERY,
                 data: {...data},
-                variables: { userId }
+                variables: user.id
             });
 
             values.keyword = ''
@@ -46,7 +47,7 @@ function TopicForm({ userId }) {
             {
                 query: FETCH_USER_QUERY
                 ,
-                variables: { userId}
+                variables: user.id
             }
         ]
     })

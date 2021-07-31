@@ -26,3 +26,22 @@ query getUser($userId: ID!) {
     }
 }
 `
+
+export const FETCH_GROUP_CHAT_QUERY = gql`
+query getGroupChat($keyword: String!) {
+    getGroupChat(keyword: $keyword) {
+        id
+        user
+        username
+        replies {
+            id
+            user
+            username
+            reply
+            createdAt
+        }
+        chat
+        createdAt
+    }
+}
+`

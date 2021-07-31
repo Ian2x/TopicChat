@@ -4,38 +4,41 @@ import { useMutation } from '@apollo/react-hooks'
 
 import { Button, Icon, Confirm, Popup } from 'semantic-ui-react'
 
-import { FETCH_USER_QUERY } from '../util/graphql'
+import { FETCH_GROUP_CHAT_QUERY } from '../util/graphql'
+
 
 const _ = require('lodash');
 
-function TopicDeleteButton({ keyword, userId }) {
+function ChatDeleteButton({ keyword, chatId }) {
+
     const [confirmOpen, setConfirmOpen] = useState(false)
 
-    const [deleteTopic] = useMutation(DELETE_TOPIC_MUTATION, {
+    const [deleteChat] = useMutation(DELETE_CHAT_MUTATION, {
         update(proxy) {
             setConfirmOpen(false)
             
             const data = _.cloneDeep(
-            proxy.readQuery({
-                query: FETCH_USER_QUERY,
-                variables: {
-                    userId
-                }
-            })
+                proxy.readQuery({
+                    query: FETCH_GROUP_CHAT_QUERY,
+                    variables: {
+                        keyword
+                    }
+                })
             )
-            
-            data.getUser.topics = [...data.getUser.topics.filter(t => String(t.keyword) !== String(keyword))]
-            
+
+            data.getGroupChat = [...data.getGroupChat.filter(c => c.id !== chatId)]
+
             proxy.writeQuery({
-                query: FETCH_USER_QUERY,
+                query: FETCH_GROUP_CHAT_QUERY,
                 data,
                 variables: {
-                    userId
+                    keyword
                 }
             })
         },
         variables: {
-            keyword
+            keyword,
+            chatId,
         },
 
         onError(err) {
@@ -44,9 +47,9 @@ function TopicDeleteButton({ keyword, userId }) {
         
         refetchQueries: [
             {
-                query: FETCH_USER_QUERY
+                query: FETCH_GROUP_CHAT_QUERY
                 ,
-                variables: { userId}
+                variables: { keyword }
             }
         ]
         
@@ -54,7 +57,7 @@ function TopicDeleteButton({ keyword, userId }) {
 
     return (
         <>
-            <Popup content="Delete topic" inverted trigger={
+            <Popup content="Delete reply" inverted trigger={
                 <Button as='div' color='red' style={{ marginLeft: 'auto' }} onClick={() => setConfirmOpen(true)}>
                     <Icon name='trash' style={{ margin: 0 }} />
                 </Button>
@@ -62,17 +65,19 @@ function TopicDeleteButton({ keyword, userId }) {
             <Confirm
                 open={confirmOpen}
                 onCancel={() => setConfirmOpen(false)}
-                onConfirm={deleteTopic}
+                onConfirm={deleteChat}
             />
         </>
     )
 
 }
 
-const DELETE_TOPIC_MUTATION = gql`
-    mutation deleteTopic($keyword: String!) {
-        deleteTopic(keyword: $keyword)
+const DELETE_CHAT_MUTATION = gql`
+    mutation deleteChat($keyword: String!, $chatId: ID!) {
+        deleteChat(keyword: $keyword, chatId: $chatId)
     }
 `
 
-export default TopicDeleteButton
+export default ChatDeleteButton
+
+// deleteChat(keyword: String!, chatId: ID!): String!
