@@ -25,14 +25,14 @@ function TopicForm() {
             const data = _.cloneDeep(
                 cache.readQuery({
                     query: FETCH_USER_QUERY,
-                    variables: user.id
+                    variables: {userId: user.id}
                 })
             )
             data.getUser.topics = [...data.getUser.topics, result.data.createTopic]
             cache.writeQuery({
                 query: FETCH_USER_QUERY,
                 data: {...data},
-                variables: user.id
+                variables: {userId: user.id}
             });
 
             values.keyword = ''
@@ -47,7 +47,7 @@ function TopicForm() {
             {
                 query: FETCH_USER_QUERY
                 ,
-                variables: user.id
+                variables: {userId: user.id}
             }
         ]
     })
@@ -88,10 +88,12 @@ function TopicForm() {
 const CREATE_TOPIC_MUTATION = gql`
 mutation createTopic($keyword: String!) {
     createTopic(keyword: $keyword) {
+        id
         keyword
         chats {
             chat
         }
+        chatCount
     }
 }
 `

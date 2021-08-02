@@ -21,7 +21,6 @@ function UserProfile(props) {
     if (loadingUser) return 'Loading user...';
     const { getUser: { username } } = dataUser;
     const { getUser: { topics } } = dataUser;
-
     return (
         <Grid celled='internally'>
             <Grid.Row className='page-title'>
@@ -34,11 +33,19 @@ function UserProfile(props) {
                     </Grid.Column>
                 </Grid.Row>
             )}
+            
             <Grid.Row columns={3}>
                 <Transition.Group>
                     {
-                        topics && topics.map((topic) => (
-                            <Grid.Column key={topic.keyword} as={Link} to={`/users/${loginUser.id}/${topic.keyword}`}>
+                        topics && loginUser && topics.map((topic) => (
+                            <Grid.Column key={topic.keyword}>
+                                <TopicCard topic={topic} topicCreatorId={userId} link={`/users/${loginUser.id}/${topic.keyword}`}/>
+                            </Grid.Column>
+                        ))
+                    }
+                    {
+                        topics && !loginUser && topics.map((topic) => (
+                            <Grid.Column key={topic.keyword} link={`/login`}>
                                 <TopicCard topic={topic} topicCreatorId={userId} />
                             </Grid.Column>
                         ))
