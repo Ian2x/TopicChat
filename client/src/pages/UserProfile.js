@@ -1,7 +1,6 @@
 import React, { useContext } from 'react'
 import { Grid, Transition, Header } from 'semantic-ui-react';
 import { useQuery } from '@apollo/react-hooks'
-import { Link } from 'react-router-dom'
 
 import { AuthContext } from '../context/auth'
 import TopicCard from '../components/TopicCard'

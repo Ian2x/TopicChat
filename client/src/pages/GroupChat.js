@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef, useEffect } from 'react';
+import React, { useContext} from 'react';
 import { useQuery } from '@apollo/react-hooks'
 import { List, Message, Header, Icon, Divider, Container } from 'semantic-ui-react';
 import moment from 'moment'
@@ -9,6 +9,7 @@ import ReplyModal from '../components/ReplyModal'
 import { FETCH_GROUP_CHAT_QUERY } from '../util/graphql'
 import ChatForm from '../components/ChatForm'
 import ChatDeleteButton from '../components/ChatDeleteButton'
+import AlwaysScrollToBottom from '../util/AlwaysScrollToBottom'
 
 function GroupChat(props) {
 
@@ -22,24 +23,13 @@ function GroupChat(props) {
         },
     })
 
-    // TEST BELOW
     /*
-    const scrollRef = useRef(null);
-    useEffect(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollIntoView({ behaviour: "smooth" });
-        }
-    }, [data.getGroupChat]);
-    */
-    //
-
-    // TEST BELOW
     const AlwaysScrollToBottom = () => {
         const elementRef = useRef();
         useEffect(() => elementRef.current.scrollIntoView());
         return <div ref={elementRef} />;
     };
-    //
+    */
 
 
     if (!user || user.id !== pageUserId) return 'Not allowed to view'
@@ -47,8 +37,6 @@ function GroupChat(props) {
     if (loading) return 'Loading groupchat...';
 
     const { getGroupChat } = data;
-
-    // if(getGroupChat.length===0) return 'no messages in this groupchat'
 
     return (
         <>

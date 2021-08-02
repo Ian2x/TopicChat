@@ -27,6 +27,7 @@ function ChatDeleteButton({ keyword, chatId }) {
             )
 
             data.getGroupChat = [...data.getGroupChat.filter(c => c.id !== chatId)]
+            data.getGroupChat.reverse()
 
             proxy.writeQuery({
                 query: FETCH_GROUP_CHAT_QUERY,

@@ -65,7 +65,7 @@ function ReplyModal({ chat: { id: chatId, user: chatUserId, username, chat, repl
         }}
       >
         <button onClick={() => closeModal()}>Back</button>
-        <List divided relaxed>
+        <List divided relaxed style={{ height: '400px', overflow: 'scroll' }}>
           {
             replies.length > 0 && replies.map((reply) => (
               <List.Item key={reply.id}>
