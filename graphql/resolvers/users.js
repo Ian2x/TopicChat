@@ -153,7 +153,7 @@ module.exports = {
             try {
                 const user = await User.findOne({ username })
                 if (user) {
-                    return user.topics.sort(byMostRecent)
+                    return user.topics.sort(byMostRecent).reverse()
                 }
                 throw new Error("Invalid username")
             } catch (err) {
@@ -178,7 +178,7 @@ module.exports = {
                 for (i = 0; i < user.friends.length; i++) {
                     groupChat = groupChat.concat(await getUserChatsForTopic(user.friends[i], keyword))
                 }
-                return groupChat.sort(byMostRecent)
+                return groupChat.sort(byMostRecent).reverse()
             } catch (err) {
                 throw new Error(err)
             }

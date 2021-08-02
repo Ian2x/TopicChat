@@ -1,8 +1,8 @@
 import React, { useContext} from 'react';
 import { useQuery } from '@apollo/react-hooks'
-import { List, Message, Header, Icon, Divider, Container } from 'semantic-ui-react';
+import { List, Message, Header, Icon, Divider, Container, Button } from 'semantic-ui-react';
 import moment from 'moment'
-
+import { Link } from 'react-router-dom'
 
 import { AuthContext } from '../context/auth'
 import ReplyModal from '../components/ReplyModal'
@@ -23,30 +23,24 @@ function GroupChat(props) {
         },
     })
 
-    /*
-    const AlwaysScrollToBottom = () => {
-        const elementRef = useRef();
-        useEffect(() => elementRef.current.scrollIntoView());
-        return <div ref={elementRef} />;
-    };
-    */
-
-
     if (!user || user.id !== pageUserId) return 'Not allowed to view'
 
     if (loading) return 'Loading groupchat...';
 
     const { getGroupChat } = data;
-
+    
     return (
         <>
-            <Header as='h2' icon textAlign='center'>
-                <Icon name='users' circular />
+            <Header as='h1' icon textAlign='center'>
+                <Icon name='users' size='small'/>
                 <Header.Content>{keyword}</Header.Content>
             </Header>
+            <Button as={Link} to={`/users/${user.id}`}>
+                Back
+            </Button>
             <List divided relaxed style={{ height: '700px', overflow: 'scroll' }}>
                 {
-                    getGroupChat && getGroupChat.reverse().map((chat) => (
+                    getGroupChat && getGroupChat.map((chat) => (
                         <List.Item key={chat.id}>
                             <List.Content style={{ padding: '5px' }}>
                                 <Message color='teal' style={{ paddingBottom: '15px' }}>
