@@ -4,6 +4,7 @@ import { Input, Menu } from 'semantic-ui-react'
 import { Link } from 'react-router-dom'
 
 import { AuthContext } from '../context/auth'
+import TopicSearch from './TopicSearch'
 
 function MenuBar() {
   const { user, logout } = useContext(AuthContext);
@@ -24,7 +25,7 @@ function MenuBar() {
       />
       <Menu.Menu position='right'>
         <Menu.Item>
-          <Input icon='search' placeholder='Search...' />
+          <TopicSearch/>
         </Menu.Item>
         <Menu.Item
           name='logout'
@@ -44,6 +45,7 @@ function MenuBar() {
       <Menu.Menu position='right'>
         <Menu.Item>
           <Input icon='search' placeholder='Search...' />
+
         </Menu.Item>
         <Menu.Item
           name='login'
@@ -65,5 +67,7 @@ function MenuBar() {
 
   return menuBar;
 }
+
+// <Input icon='search' placeholder='Search...' />
 
 export default MenuBar;

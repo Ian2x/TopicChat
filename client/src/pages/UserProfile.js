@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { Grid, Transition, Header } from 'semantic-ui-react';
+import { Grid, Transition, Header, Input } from 'semantic-ui-react';
 import { useQuery } from '@apollo/react-hooks'
 
 import { AuthContext } from '../context/auth'
@@ -21,14 +21,17 @@ function UserProfile(props) {
     const { getUser: { username } } = dataUser;
     const { getUser: { topics } } = dataUser;
     return (
-        <Grid celled='internally'>
+        <Grid centered celled='internally'>
             <Grid.Row className='page-title'>
                 <h1>{username}'s topics</h1>
             </Grid.Row>
             {loginUser && loginUser.id === userId && (
                 <Grid.Row>
-                    <Grid.Column>
+                    <Grid.Column width={9}>
                         <TopicForm/>
+                    </Grid.Column>
+                    <Grid.Column width={6}>
+                        <Input fluid icon='search' placeholder='Find Friends...' />
                     </Grid.Column>
                 </Grid.Row>
             )}
