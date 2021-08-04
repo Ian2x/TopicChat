@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { Grid, Transition, Header } from 'semantic-ui-react';
+import { Grid, Transition, Header, List } from 'semantic-ui-react';
 import { useQuery } from '@apollo/react-hooks'
 
 import { AuthContext } from '../context/auth'
@@ -19,12 +19,11 @@ function UserProfile(props) {
     })
 
     if (loadingUser) return 'Loading user...';
-    const { getUser: { username } } = dataUser;
-    const { getUser: { topics } } = dataUser;
+    const { getUser: user } = dataUser
     return (
         <Grid centered celled='internally'>
             <Grid.Row className='page-title'>
-                <h1>{username}'s topics</h1>
+                <h1>{user.username}'s topics</h1>
             </Grid.Row>
             {loginUser && loginUser.id === userId && (
                 <Grid.Row>
@@ -36,18 +35,64 @@ function UserProfile(props) {
                     </Grid.Column>
                 </Grid.Row>
             )}
+            {loginUser && loginUser.id === userId && (
+                <Grid.Row>
+                    <Grid.Column width={8}>
+                        <Grid.Row>
+                            Your Friends:
+                        </Grid.Row>
+                        <Grid.Row>
+                            <List divided relaxed style={{ height: '100px', overflow: 'scroll' }}>
+                                {
+                                    user.friends.length > 0 && user.friends.map((friend) => (
+                                        { friend }
+                                    ))
+                                }
+                                {
+                                    user.friends.length===0 && (
+                                        <h1>
+                                            You have no friends...
+                                        </h1>
+                                    )
+                                }
+                            </List>
+                        </Grid.Row>
+                    </Grid.Column>
+                    <Grid.Column width={8}>
+                        <Grid.Row>
+                            Pending friend requests:
+                        </Grid.Row>
+                        <Grid.Row>
+                            <List divided relaxed style={{ height: '100px', overflow: 'scroll' }}>
+                                {
+                                    user.friendRequests.length > 0 && user.friends.map((friend) => (
+                                        { friend }
+                                    ))
+                                }
+                                {
+                                    user.friendRequests.length === 0 && (
+                                        <h1>
+                                            No pending friend requests...
+                                        </h1>
+                                    )
+                                }
+                            </List>
+                        </Grid.Row>
+                    </Grid.Column>
+                </Grid.Row>
+            )}
             
             <Grid.Row columns={3}>
                 <Transition.Group>
                     {
-                        topics && loginUser && topics.map((topic) => (
+                        user.topics && loginUser && user.topics.map((topic) => (
                             <Grid.Column key={topic.keyword}>
                                 <TopicCard topic={topic} topicCreatorId={userId} link={`/users/${loginUser.id}/${topic.keyword}`}/>
                             </Grid.Column>
                         ))
                     }
                     {
-                        topics && !loginUser && topics.map((topic) => (
+                        user.topics && !loginUser && user.topics.map((topic) => (
                             <Grid.Column key={topic.keyword} link={`/login`}>
                                 <TopicCard topic={topic} topicCreatorId={userId} />
                             </Grid.Column>
@@ -57,10 +102,10 @@ function UserProfile(props) {
             </Grid.Row>
             <Grid.Row>
                 {
-                    topics.length === 0 && (
+                    user.topics.length === 0 && (
                     <Grid.Column>
                         <Header size='large' textAlign='center'>
-                            {username} has no topics...
+                            {user.username} has no topics...
                         </Header>
                     </Grid.Column>)
                 }
