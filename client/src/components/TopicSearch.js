@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React, {useContext} from 'react'
 import gql from 'graphql-tag'
-import { Search, Grid, Header, Segment, Label, Icon } from 'semantic-ui-react'
+import { Search, Grid, Header, Segment, Label, Icon, Container } from 'semantic-ui-react'
 import { useQuery } from '@apollo/react-hooks'
 import { Link } from 'react-router-dom'
 
@@ -31,14 +31,14 @@ function exampleReducer(state, action) {
 
 const resultRenderer = ({title, addedtopic, userid}) => {
   return (
-    <>
-    <Label as={Link} to={`/users/${userid}/${title}`}>
-      {title+' '}
-    </Label>
-    {addedtopic==='true' &&
-      <Icon name='star' size='small' style={{float: 'right', marginTop: '7px'}}/>
-    }
-    </>
+    <Container as={Link} to={`/users/${userid}/${title}`}> 
+      <Label>
+        {title+' '}
+      </Label>
+      {addedtopic==='true' &&
+        <Icon name='star' size='small' style={{float: 'right', marginTop: '7px'}}/>
+      }
+    </Container>
   )
 }
 
