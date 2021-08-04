@@ -124,8 +124,10 @@ async function getSuggestedTopics(user) {
     }
     // sort based on totalChats
     suggestedTopics.sort(byChatCount)
-    // just return keywords
-    return suggestedTopics.map(sortedTopic => sortedTopic.keyword)
+    // topics that are already added
+    const alreadyAddedTopics = user.topics.map(topic => topic.keyword)
+    // return topics and whether they're already in user
+    return suggestedTopics.map(sortedTopic => ({'keyword': sortedTopic.keyword, 'totalChats': sortedTopic.totalChats, 'addedTopic': alreadyAddedTopics.includes(sortedTopic.keyword)}))
 }
 
 // QUERY AND MUTATION RESOLVERS (BELOW)
@@ -183,7 +185,7 @@ module.exports = {
                 throw new Error(err)
             }
         },
-        // getAllSuggestedTopics: [String]!
+        // getAllSuggestedTopics: [SuggestedTopic]!
         async getAllSuggestedTopics(_, {}, context) {
             try {
                 var user = checkAuth(context)
@@ -193,6 +195,7 @@ module.exports = {
                 throw new Error(err)
             }
         },
+        /*
         // getNewSuggestedTopics: [String]!
         async getNewSuggestedTopics(_, {}, context) {
             try {
@@ -204,6 +207,7 @@ module.exports = {
                 throw new Error(err)
             }
         }
+        */
     },
     Mutation: {
         // register(registerInput: RegisterInput): User!

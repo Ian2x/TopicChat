@@ -20,11 +20,8 @@ function exampleReducer(state, action) {
     case 'CLEAN_QUERY':
       return initialState
     case 'START_SEARCH':
-      console.log('STATE: ',state)
       return { ...state, loading: true, value: action.query }
     case 'FINISH_SEARCH':
-      console.log('STATE: ',state)
-      console.log('STATE2:', action.results)
       return { ...state, loading: false, results: action.results }
     case 'UPDATE_SELECTION':
       return { ...state, value: action.selection }
@@ -93,7 +90,7 @@ function TopicSearch() {
       </Grid>
     )
   }
-  source = source.map((string)=>({'keyword': string}))
+
   return (
     <Grid>
       <Grid.Column width={6}>
@@ -115,7 +112,11 @@ function TopicSearch() {
 
 const FETCH_ALL_SUGGESTED_TOPICS_QUERY = gql`
     query getAllSuggestedTopics {
-        getAllSuggestedTopics
+        getAllSuggestedTopics {
+          keyword
+          addedTopic
+          totalChats
+        }
     }
 `
 

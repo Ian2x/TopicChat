@@ -37,13 +37,18 @@ module.exports = gql`
         password: String!
         confirmPassword: String!
     }
+    type SuggestedTopic {
+        keyword: String!
+        addedTopic: Boolean!
+        totalChats: Int!
+    }
     type Query {
         getUser(userId: ID!): User!
         getAllUsers: [User]!
         getUserTopics(username: String!): [Topic]!
         getUserTopicChats(userId: ID!, keyword: String!): [Chat]!
         getGroupChat(keyword: String!): [Chat]!
-        getAllSuggestedTopics: [String]!
+        getAllSuggestedTopics: [SuggestedTopic]!
         getNewSuggestedTopics: [String]!
     }
     type Mutation {
