@@ -1,11 +1,12 @@
 import React, { useContext } from 'react'
-import { Grid, Transition, Header, Input } from 'semantic-ui-react';
+import { Grid, Transition, Header } from 'semantic-ui-react';
 import { useQuery } from '@apollo/react-hooks'
 
 import { AuthContext } from '../context/auth'
 import TopicCard from '../components/TopicCard'
 import TopicForm from '../components/TopicForm'
 import { FETCH_USER_QUERY } from '../util/graphql'
+import FriendSearch from '../components/FriendSearch'
 
 function UserProfile(props) {
     const userId = props.match.params.userId;
@@ -31,7 +32,7 @@ function UserProfile(props) {
                         <TopicForm/>
                     </Grid.Column>
                     <Grid.Column width={6}>
-                        <Input fluid icon='search' placeholder='Find Friends...' />
+                        <FriendSearch/>
                     </Grid.Column>
                 </Grid.Row>
             )}

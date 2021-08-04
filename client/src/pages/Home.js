@@ -1,13 +1,13 @@
 import React from 'react';
 import { useQuery } from '@apollo/react-hooks';
-import gql from 'graphql-tag';
 import { Grid } from 'semantic-ui-react';
 
 import UserCard from '../components/UserCard.js';
+import { FETCH_ALL_USERS_QUERY } from '../util/graphql.js';
 
 function Home() {
     // const { user } = useContext(AuthContext);
-    const { loading, data } = useQuery(FETCH_USERS_QUERY);
+    const { loading, data } = useQuery(FETCH_ALL_USERS_QUERY);
     if (loading) return 'Loading user card...'
     const { getAllUsers } = data;
     const users = getAllUsers
@@ -33,13 +33,4 @@ function Home() {
     )
 }
 
-const FETCH_USERS_QUERY = gql`
-    {
-        getAllUsers{
-            id
-            username
-            createdAt
-        }
-    }
-`
 export default Home;

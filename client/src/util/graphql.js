@@ -1,5 +1,22 @@
 import gql from 'graphql-tag'
 
+export const FETCH_ALL_USERS_QUERY = gql`
+    query getAllUsers {
+        getAllUsers {
+            id
+            username
+            topics {
+                chats {
+                    chat
+                }
+            }
+            friends
+            friendRequests
+            createdAt
+        }
+    }
+`
+
 export const FETCH_USER_QUERY = gql`
 query getUser($userId: ID!) {
     getUser(userId: $userId) {

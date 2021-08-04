@@ -71,12 +71,10 @@ function TopicSearch() {
 
       const re = new RegExp(_.escapeRegExp(data.value), 'i')
       const isMatch = (result) => re.test(result.title)
-      //const isMatch = (result) => result===data.value
-      //console.log(source.filter(isMatch))
+
       dispatch({
         type: 'FINISH_SEARCH',
         results: _.filter(source, isMatch),
-        //results: source.filter(isMatch)
       })
     }, 300)
   }, [source])
