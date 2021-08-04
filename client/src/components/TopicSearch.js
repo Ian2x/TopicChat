@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React, {useContext} from 'react'
 import gql from 'graphql-tag'
-import { Search, Grid, Header, Segment, Label, Icon, Container } from 'semantic-ui-react'
+import { Search, Grid, Label, Icon, Container } from 'semantic-ui-react'
 import { useQuery } from '@apollo/react-hooks'
 import { Link } from 'react-router-dom'
 
