@@ -287,12 +287,18 @@ module.exports = {
                 throw new UserInputError('Topic keyword is required', { errors })
             }
 
+            const fullUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
+            // getUser.topics.some(t => t.keyword === keyword)
+            if(fullUser.topics.some(t=>t.keyword === kw)) {
+                throw new Error('Topic already added')
+            }
+
             const { nModified } = await User.updateOne(
                 {
                     "_id": mongoose.Types.ObjectId(user.id),
                 },
                 {
-                    "$push": {
+                    "$addToSet": {
                         "topics": {
                             keyword: kw,
                             chats: [],

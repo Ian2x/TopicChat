@@ -45,3 +45,16 @@ query getGroupChat($keyword: String!) {
     }
 }
 `
+
+export const CREATE_TOPIC_MUTATION = gql`
+mutation createTopic($keyword: String!) {
+    createTopic(keyword: $keyword) {
+        id
+        keyword
+        chats {
+            chat
+        }
+        chatCount
+    }
+}
+`

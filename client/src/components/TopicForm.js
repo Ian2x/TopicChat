@@ -1,10 +1,9 @@
-import gql from 'graphql-tag'
 import React, { useState, useContext } from 'react'
 import { Button, Form } from 'semantic-ui-react'
 import { useMutation } from '@apollo/react-hooks'
 
 import { AuthContext } from '../context/auth'
-import { FETCH_USER_QUERY } from '../util/graphql'
+import { FETCH_USER_QUERY, CREATE_TOPIC_MUTATION } from '../util/graphql'
 import { useForm } from '../util/hooks'
 
 const _ = require('lodash');
@@ -84,18 +83,5 @@ function TopicForm() {
     </>
     )
 }
-
-const CREATE_TOPIC_MUTATION = gql`
-mutation createTopic($keyword: String!) {
-    createTopic(keyword: $keyword) {
-        id
-        keyword
-        chats {
-            chat
-        }
-        chatCount
-    }
-}
-`
 
 export default TopicForm
