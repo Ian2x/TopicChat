@@ -214,6 +214,7 @@ module.exports = {
         // getUserFeed: [Chat]!
         async getUserFeed(_, __, context) {
             try {
+                // primitive feed: essentially merges all groupchats for interested topics
                 var user = checkAuth(context)
                 user = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id)})
                 const topicKeywords = user.topics.map(topic => topic.keyword)

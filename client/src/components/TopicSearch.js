@@ -95,9 +95,7 @@ function TopicSearch() {
       </Grid>
     )
   }
-
   source = source.map((topic)=>({"title": topic.keyword, "addedtopic": topic.addedTopic.toString(), "totalchats": topic.totalChats, "userid": user.id}))
-
   return (
     <Grid>
       <Grid.Column width={6}>

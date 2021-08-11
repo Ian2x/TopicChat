@@ -39,7 +39,7 @@ function TopicForm() {
         },
         onError(err) {
             console.log(err)
-            setErrors(err.graphQLErrors[0].extensions.exception.errors);
+            setErrors(err.graphQLErrors[0].extensions.errors);
         },
 
         refetchQueries: [
