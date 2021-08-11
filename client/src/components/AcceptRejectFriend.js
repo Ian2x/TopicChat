@@ -4,6 +4,9 @@ import { useMutation } from '@apollo/react-hooks'
 import gql from 'graphql-tag'
 
 import { AuthContext } from '../context/auth'
+import { FETCH_USER_QUERY } from '../util/graphql'
+
+const _ = require('lodash');
 
 function AcceptRejectFriend({friendUsername, friendId}) {
 
@@ -11,37 +14,68 @@ function AcceptRejectFriend({friendUsername, friendId}) {
 
     const [showButtons, setShowButtons] = useState('true');
 
-    const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST_MUTATION, {
-        /*
+    const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST_MUTATION, {    
         update(proxy) {
             const data = _.cloneDeep(
                 proxy.readQuery({
-                    query: FETCH_ALL_USERS_QUERY,
-                    variables: {}
+                    query: FETCH_USER_QUERY,
+                    variables: {
+                        userId: user.id
+                    },
                 })
             )
-            console.log(data)
-            const index = data.getAllUsers.findIndex((user) => user.id === friendId)
-            data.getAllUsers[index].friendRequests = [...data.getAllUsers[index].friendRequests, { "username": user.username, "userId": user.id }]
-            console.log(data)
+            data.getUser.friendRequests = data.getUser.friendRequests.filter(fr=>fr.userId!==friendId)
+            data.getUser.friends = [...data.getUser.friends, { 'username': friendUsername, 'userId': friendId }]
 
             proxy.writeQuery({
-                query: FETCH_ALL_USERS_QUERY,
+                query: FETCH_USER_QUERY,
                 data,
-                variables: {}
+                variables: {
+                    userId: user.id
+                }
             })
         },
-        */
         variables: {
             'friendUsername': friendUsername,
             'friendId': friendId
         },
+        refetchQueries: [
+            {
+                query: FETCH_USER_QUERY,
+                variables: {userId: user.id}
+            }
+        ]
     })
 
     const [rejectFriendRequest] = useMutation(REJECT_FRIEND_REQUEST_MUTATION, {
+        update(proxy) {
+            const data = _.cloneDeep(
+                proxy.readQuery({
+                    query: FETCH_USER_QUERY,
+                    variables: {
+                        userId: user.id
+                    },
+                })
+            )
+            data.getUser.friendRequests = data.getUser.friendRequests.filter(fr=>fr.userId!==friendId)
+
+            proxy.writeQuery({
+                query: FETCH_USER_QUERY,
+                data,
+                variables: {
+                    userId: user.id
+                }
+            })
+        },
         variables: {
             'friendId': friendId
         },
+        refetchQueries: [
+            {
+                query: FETCH_USER_QUERY,
+                variables: {userId: user.id}
+            }
+        ]
     })
 
     const handleAccept = e => {
