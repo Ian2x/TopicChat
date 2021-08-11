@@ -1,5 +1,28 @@
 import gql from 'graphql-tag'
 
+export const FETCH_ALL_USERS_QUERY = gql`
+    query getAllUsers {
+        getAllUsers {
+            id
+            username
+            topics {
+                chats {
+                    chat
+                }
+            }
+            friends {
+                username
+                userId
+            }
+            friendRequests {
+                username
+                userId
+            }
+            createdAt
+        }
+    }
+`
+
 export const FETCH_USER_QUERY = gql`
 query getUser($userId: ID!) {
     getUser(userId: $userId) {
@@ -20,8 +43,14 @@ query getUser($userId: ID!) {
             }
             chatCount
         }
-        friends
-        friendRequests
+        friends {
+            username
+            userId
+        }
+        friendRequests {
+            username
+            userId
+        }
         createdAt
     }
 }
@@ -42,6 +71,26 @@ query getGroupChat($keyword: String!) {
         }
         chat
         createdAt
+    }
+}
+`
+
+export const CREATE_TOPIC_MUTATION = gql`
+mutation createTopic($keyword: String!) {
+    createTopic(keyword: $keyword) {
+        id
+        keyword
+        chats {
+            id
+            user
+            username
+            chat
+            replies
+            replyCount
+            createdAt
+            parentTopic
+        }
+        chatCount
     }
 }
 `

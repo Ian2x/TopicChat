@@ -88,6 +88,7 @@ mutation replyToChat($chatUserId: ID!, $keyword: String!, $chatId: ID!, $reply: 
     replyToChat(chatUserId: $chatUserId, keyword: $keyword, chatId: $chatId, reply: $reply) {
         id
         user
+        username
         reply
         createdAt
     }

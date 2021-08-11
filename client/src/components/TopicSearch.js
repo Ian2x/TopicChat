@@ -1,14 +1,12 @@
 import _ from 'lodash'
-import React from 'react'
+import React, {useContext} from 'react'
 import gql from 'graphql-tag'
-import { Search, Grid, Header, Segment, Label } from 'semantic-ui-react'
+import { Search, Grid, Label, Icon, Container } from 'semantic-ui-react'
 import { useQuery } from '@apollo/react-hooks'
+import { Link } from 'react-router-dom'
 
-/*
-const source = _.times(5, () => ({
-  keyword: faker.company.companyName(),
-}))
-*/
+import { AuthContext } from '../context/auth'
+
 const initialState = {
   loading: false,
   results: [],
@@ -20,11 +18,8 @@ function exampleReducer(state, action) {
     case 'CLEAN_QUERY':
       return initialState
     case 'START_SEARCH':
-      console.log('STATE: ',state)
       return { ...state, loading: true, value: action.query }
     case 'FINISH_SEARCH':
-      console.log('STATE: ',state)
-      console.log('STATE2:', action.results)
       return { ...state, loading: false, results: action.results }
     case 'UPDATE_SELECTION':
       return { ...state, value: action.selection }
@@ -34,13 +29,22 @@ function exampleReducer(state, action) {
   }
 }
 
-const resultRenderer = ({keyword}) => {
-  return <Label content={keyword} />
+const resultRenderer = ({title, addedtopic, userid}) => {
+  return (
+    <Container as={Link} to={`/users/${userid}/${title}`}> 
+      <Label>
+        {title+' '}
+      </Label>
+      {addedtopic==='true' &&
+        <Icon name='star' size='small' style={{float: 'right', marginTop: '7px'}}/>
+      }
+    </Container>
+  )
 }
 
 function TopicSearch() {
 
-
+  const { user } = useContext(AuthContext);
 
   const { loading: loadingSource, data } = useQuery(FETCH_ALL_SUGGESTED_TOPICS_QUERY, {
     variables: {
@@ -48,7 +52,7 @@ function TopicSearch() {
   })
   var source = null
   if (!loadingSource) {
-    var { getAllSuggestedTopics: source } = data
+    ({ getAllSuggestedTopics: source } = data)
   }
 
   const [state, dispatch] = React.useReducer(exampleReducer, initialState)
@@ -66,13 +70,11 @@ function TopicSearch() {
       }
 
       const re = new RegExp(_.escapeRegExp(data.value), 'i')
-      const isMatch = (result) => re.test(result.keyword)
-      //const isMatch = (result) => result===data.value
-      //console.log(source.filter(isMatch))
+      const isMatch = (result) => re.test(result.title)
+
       dispatch({
         type: 'FINISH_SEARCH',
         results: _.filter(source, isMatch),
-        //results: source.filter(isMatch)
       })
     }, 300)
   }, [source])
@@ -93,14 +95,16 @@ function TopicSearch() {
       </Grid>
     )
   }
-  source = source.map((string)=>({'keyword': string}))
+
+  source = source.map((topic)=>({"title": topic.keyword, "addedtopic": topic.addedTopic.toString(), "totalchats": topic.totalChats, "userid": user.id}))
+
   return (
     <Grid>
       <Grid.Column width={6}>
         <Search
           loading={loading}
           onResultSelect={(e, data) =>
-            dispatch({ type: 'UPDATE_SELECTION', selection: data.result.keyword })
+            dispatch({ type: 'UPDATE_SELECTION', selection: data.result.title })
           }
           onSearchChange={handleSearchChange}
           resultRenderer={resultRenderer}
@@ -115,7 +119,11 @@ function TopicSearch() {
 
 const FETCH_ALL_SUGGESTED_TOPICS_QUERY = gql`
     query getAllSuggestedTopics {
-        getAllSuggestedTopics
+        getAllSuggestedTopics {
+          keyword
+          addedTopic
+          totalChats
+        }
     }
 `
 
