@@ -1,4 +1,5 @@
-  
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400&display=swap'); 
 
 .page-title {
     display: block !important;
@@ -21,3 +22,41 @@
   .ui.card>.image>img, .ui.cards>.card>.image>img {
     height: 100%
   }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container {
+    margin:0px;
+    padding:0px;
+    border:0px;
+    width:100vw;
+  }
+
+  
+  .btn {
+    
+  }
+  
+
+  h1{
+    font-size:80px;
+    font-family: 'Inter', sans-serif;
+    }
+
+  body {
+    background-color:#ffffff;
+    background-position: 'center',
+  }
+
+  .top-buffer { padding-top:20vh; }
+/*
+.d-flex {
+  font-size:40px;
+  font-family: 'Inter', sans-serif;
+
+}
+*/
