@@ -9,7 +9,7 @@ import { AuthContext } from '../context/auth'
 import ChatDeleteButton from '../components/ChatDeleteButton'
 
 
-function ChatFeed() {
+function DiscoverFeed() {
 
     const { user } = useContext(AuthContext);
 
@@ -112,4 +112,4 @@ const FETCH_USER_FEED_QUERY = gql`
     }
 `
 
-export default ChatFeed
+export default DiscoverFeed
