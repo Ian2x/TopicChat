@@ -4,41 +4,38 @@ import { useMutation } from '@apollo/react-hooks'
 
 import { Button, Icon, Confirm, Popup } from 'semantic-ui-react'
 
-import { FETCH_GROUP_CHAT_QUERY } from '../util/graphql'
-
+import { FETCH_USER_QUERY } from '../util/graphql'
 
 const _ = require('lodash');
 
-function ChatDeleteButton({ keyword, chatId }) {
-
+function FriendDeleteButton({ userId, friendId }) {
     const [confirmOpen, setConfirmOpen] = useState(false)
 
-    const [deleteChat] = useMutation(DELETE_CHAT_MUTATION, {
+    const [deleteTopic] = useMutation(DELETE_FRIEND_MUTATION, {
         update(proxy) {
             setConfirmOpen(false)
             
             const data = _.cloneDeep(
-                proxy.readQuery({
-                    query: FETCH_GROUP_CHAT_QUERY,
-                    variables: {
-                        keyword
-                    }
-                })
+            proxy.readQuery({
+                query: FETCH_USER_QUERY,
+                variables: {
+                    userId
+                }
+            })
             )
-
-            data.getGroupChat = [...data.getGroupChat.filter(c => c.id !== chatId)]
-
+            
+            data.getUser.friends = [...data.getUser.friends.filter(f => String(f.userId) !== String(friendId))]
+            
             proxy.writeQuery({
-                query: FETCH_GROUP_CHAT_QUERY,
+                query: FETCH_USER_QUERY,
                 data,
                 variables: {
-                    keyword
+                    userId
                 }
             })
         },
         variables: {
-            keyword,
-            chatId,
+            friendId
         },
 
         onError(err) {
@@ -47,17 +44,17 @@ function ChatDeleteButton({ keyword, chatId }) {
         
         refetchQueries: [
             {
-                query: FETCH_GROUP_CHAT_QUERY
+                query: FETCH_USER_QUERY
                 ,
-                variables: { keyword }
+                variables: { userId}
             }
         ]
         
     })
 
     return (
-        <>
-            <Popup content="Delete reply" inverted trigger={
+        <div>
+            <Popup content="Remove friend" inverted trigger={
                 <Button as='div' color='red' style={{ marginLeft: 'auto' }} onClick={() => setConfirmOpen(true)}>
                     <Icon name='trash' style={{ margin: 0 }} />
                 </Button>
@@ -65,19 +62,17 @@ function ChatDeleteButton({ keyword, chatId }) {
             <Confirm
                 open={confirmOpen}
                 onCancel={() => setConfirmOpen(false)}
-                onConfirm={deleteChat}
+                onConfirm={deleteTopic}
             />
-        </>
+        </div>
     )
 
 }
 
-const DELETE_CHAT_MUTATION = gql`
-    mutation deleteChat($keyword: String!, $chatId: ID!) {
-        deleteChat(keyword: $keyword, chatId: $chatId)
+const DELETE_FRIEND_MUTATION = gql`
+    mutation removeFriend($friendId: ID!) {
+        removeFriend(friendId: $friendId)
     }
 `
 
-export default ChatDeleteButton
-
-// deleteChat(keyword: String!, chatId: ID!): String!
+export default FriendDeleteButton

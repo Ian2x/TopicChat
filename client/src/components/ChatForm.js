@@ -25,8 +25,11 @@ function ChatForm({keyword}){
                     variables: {keyword: keyword}
                 })
             )
+            console.log(result.data.createChat)
+            console.log(data.getGroupChat)
+            data.getGroupChat = [...data.getGroupChat, result.data.createChat]
+            console.log(data.getGroupChat)
 
-            data.getGroupChat = [result.data.createChat, ...data.getGroupChat]
             cache.writeQuery({
                 query: FETCH_GROUP_CHAT_QUERY,
                 data: {...data},

@@ -10,8 +10,14 @@ export const FETCH_ALL_USERS_QUERY = gql`
                     chat
                 }
             }
-            friends
-            friendRequests
+            friends {
+                username
+                userId
+            }
+            friendRequests {
+                username
+                userId
+            }
             createdAt
         }
     }
@@ -37,8 +43,14 @@ query getUser($userId: ID!) {
             }
             chatCount
         }
-        friends
-        friendRequests
+        friends {
+            username
+            userId
+        }
+        friendRequests {
+            username
+            userId
+        }
         createdAt
     }
 }
@@ -69,7 +81,14 @@ mutation createTopic($keyword: String!) {
         id
         keyword
         chats {
+            id
+            user
+            username
             chat
+            replies
+            replyCount
+            createdAt
+            parentTopic
         }
         chatCount
     }

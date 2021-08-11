@@ -21,6 +21,14 @@ function byMostRecent(a, b) {
     return ((date_a < date_b) ? 1 : ((date_a > date_b) ? -1 : 0))
 }
 
+function byChatCount(a, b) {
+    return (a.totalChats < b.totalChats ? 1 : ((a.totalChats > b.totalChats) ? -1 : 0))
+}
+
+function byReplyCount(a, b) {
+    return (a.replyCount < b.replyCount ? 1: ((a.replyCount > b.replyCount) ? -1 : 0))
+}
+
 async function userExists(userId) {
     const user = await User.findOne({ "_id": mongoose.Types.ObjectId(userId) })
     if (!user) {
@@ -29,8 +37,15 @@ async function userExists(userId) {
 }
 
 async function syncFriendRelationship(id1, id2) {
-    const user1HasFriend = await User.findOne({ "_id": mongoose.Types.ObjectId(id1), "friends": id2 })
-    const user2HasFriend = await User.findOne({ "_id": mongoose.Types.ObjectId(id2), "friends": id1 })
+    const user1HasFriend = await User.findOne({ $and: [
+        {"_id": mongoose.Types.ObjectId(id1)},
+        {"friends.userId": id2}
+    ]})
+    const user2HasFriend = await User.findOne({ $and: [
+        {"_id": mongoose.Types.ObjectId(id2)},
+        {"friends.userId": id1}
+    ]})
+
     if (user1HasFriend && !user2HasFriend) {
         await User.updateOne(
             {
@@ -38,8 +53,11 @@ async function syncFriendRelationship(id1, id2) {
             },
             {
                 "$pull": {
-                    "friends": id2
+                    "friends": {"userId": id2}
                 }
+            },
+            {
+                multi: true
             })
     }
     if (!user1HasFriend && user2HasFriend) {
@@ -49,19 +67,25 @@ async function syncFriendRelationship(id1, id2) {
             },
             {
                 "$pull": {
-                    "friends": id1
+                    "friends": {"userId": id1}
                 }
+            },
+            {
+                multi: true
             })
     }
     // remove pending requests if friends already
     if (user1HasFriend && user2HasFriend) {
+        console.log("Got in")
         await User.updateOne(
             {
                 "_id": mongoose.Types.ObjectId(id1)
             },
             {
                 "$pull": {
-                    "friendRequests": id2
+                    "friendRequests": {
+                        "userId": mongoose.Types.ObjectId(id2)
+                    }
                 }
             }
         )
@@ -71,12 +95,13 @@ async function syncFriendRelationship(id1, id2) {
             },
             {
                 "$pull": {
-                    "friendRequests": id1
+                    "friendsRequests": {
+                        "userId": mongoose.Types.ObjectId(id1)
+                    }
                 }
             }
         )
     }
-
 }
 
 async function getUserChatsForTopic(userId, keyword) {
@@ -100,11 +125,7 @@ async function addTopicByCountToList(addTopic, topicList) {
     }
 }
 
-function byChatCount(a, b) {
-    return (a.totalChats < b.totalChats ? 1 : ((a.totalChats > b.totalChats) ? -1 : 0))
-}
-
-async function getSuggestedTopics(user) {
+async function getSuggestedTopics(user, onlyNew) {
     var suggestedTopics = []
     /*
     suggestedTopics structure:
@@ -117,7 +138,7 @@ async function getSuggestedTopics(user) {
         addTopicByCountToList(user.topics[i], suggestedTopics)
     }
     for (i = 0; i < user.friends.length; i++) {
-        friend = await User.findOne({ "_id": mongoose.Types.ObjectId(user.friends[i])})
+        friend = await User.findOne({ "_id": mongoose.Types.ObjectId(user.friends[i].userId)})
         for (j = 0; j < friend.topics.length; j++) {
             addTopicByCountToList(friend.topics[j], suggestedTopics)
         }
@@ -126,6 +147,11 @@ async function getSuggestedTopics(user) {
     suggestedTopics.sort(byChatCount)
     // topics that are already added
     const alreadyAddedTopics = user.topics.map(topic => topic.keyword)
+    // if onlyNew:
+    if (onlyNew) {
+        suggestedTopics = suggestedTopics.map(sortedTopic => ({'keyword': sortedTopic.keyword, 'totalChats': sortedTopic.totalChats}))
+        return suggestedTopics.filter(sortedTopic => !alreadyAddedTopics.includes(sortedTopic.keyword))
+    }
     // return topics and whether they're already in user
     return suggestedTopics.map(sortedTopic => ({'keyword': sortedTopic.keyword, 'totalChats': sortedTopic.totalChats, 'addedTopic': alreadyAddedTopics.includes(sortedTopic.keyword)}))
 }
@@ -178,9 +204,36 @@ module.exports = {
                 user = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
                 var groupChat = await getUserChatsForTopic(user.id, keyword)
                 for (i = 0; i < user.friends.length; i++) {
-                    groupChat = groupChat.concat(await getUserChatsForTopic(user.friends[i], keyword))
+                    groupChat = groupChat.concat(await getUserChatsForTopic(user.friends[i].userId, keyword))
                 }
                 return groupChat.sort(byMostRecent).reverse()
+            } catch (err) {
+                throw new Error(err)
+            }
+        },
+        // getUserFeed: [Chat]!
+        async getUserFeed(_, __, context) {
+            try {
+                var user = checkAuth(context)
+                user = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id)})
+                const topicKeywords = user.topics.map(topic => topic.keyword)
+                var feed = []
+                for (i = 0; i < topicKeywords.length; i++) {
+                    for (j = 0; j < user.friends.length; j++) {
+                        const temp = await getUserChatsForTopic(user.friends[j].userId, topicKeywords[i])
+                        for (k = 0; k < temp.length; k++) {
+                            temp[k].parentTopic = topicKeywords[i]
+                        }
+                        feed = feed.concat(temp)
+                    }
+                    // add own chats to feed
+                    const temp = await getUserChatsForTopic(user.id, topicKeywords[i])
+                    for (k = 0; k < temp.length; k++) {
+                        temp[k].parentTopic = topicKeywords[i]
+                    }
+                    feed = feed.concat(temp)
+                }
+                return feed.sort(byReplyCount).reverse()
             } catch (err) {
                 throw new Error(err)
             }
@@ -190,24 +243,23 @@ module.exports = {
             try {
                 var user = checkAuth(context)
                 user = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id)})
-                return await getSuggestedTopics(user)
+                return await getSuggestedTopics(user, false)
             } catch (err) {
                 throw new Error(err)
             }
         },
-        /*
+        
         // getNewSuggestedTopics: [String]!
         async getNewSuggestedTopics(_, {}, context) {
             try {
                 var user = checkAuth(context)
                 user = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id)})
-                const toExclude = user.topics.map(topic => topic.keyword)
-                return (await getSuggestedTopics(user)).filter( el => !toExclude.includes( el ) );
+                return await getSuggestedTopics(user, true)
             } catch (err) {
                 throw new Error(err)
             }
         }
-        */
+        
     },
     Mutation: {
         // register(registerInput: RegisterInput): User!
@@ -293,6 +345,7 @@ module.exports = {
                 throw new Error('Topic already added')
             }
 
+            topicId = mongoose.Types.ObjectId();
             const { nModified } = await User.updateOne(
                 {
                     "_id": mongoose.Types.ObjectId(user.id),
@@ -300,6 +353,7 @@ module.exports = {
                 {
                     "$addToSet": {
                         "topics": {
+                            _id: topicId,
                             keyword: kw,
                             chats: [],
                             createdAt: new Date().toISOString()
@@ -312,7 +366,7 @@ module.exports = {
             // get updated user (which contains the newly created topic)
             const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
             // return newly created topic
-            return updatedUser.topics.find(({ keyword }) => keyword === kw)
+            return updatedUser.topics.find(({ _id }) => String(_id) == String(topicId))
 
         },
         // createChat(topic: String!, chat: String!): Chat!
@@ -326,6 +380,7 @@ module.exports = {
                 throw new UserInputError('Chat message is required', { errors })
             }
 
+            chatId = mongoose.Types.ObjectId()
             const { nModified } = await User.updateOne(
                 {
                     "_id": mongoose.Types.ObjectId(user.id),
@@ -334,6 +389,7 @@ module.exports = {
                 {
                     "$push": {
                         "topics.$.chats": {
+                            _id: chatId,
                             user: mongoose.Types.ObjectId(user.id),
                             username: user.username,
                             chat: ct,
@@ -349,13 +405,14 @@ module.exports = {
             // get updated user (which contains the newly created chat)
             const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
             // return newly created chat
-            return updatedUser.topics.find(({ keyword }) => keyword === kw).chats.find(({ chat }) => chat === ct)
+            return updatedUser.topics.find(({ keyword }) => keyword === kw).chats.find(({ _id }) => String(_id) == String(chatId))
         },
         // replyToChat(chatUserId: ID!, keyword: String!, chatId: ID!, reply: String!): String!
         async replyToChat(_, { chatUserId, keyword: kw, chatId, reply: rp}, context) {
             const user = checkAuth(context)
 
             try {
+                replyId = mongoose.Types.ObjectId()
                 const { nModified } = await User.updateOne(
                     {
                         "_id": mongoose.Types.ObjectId(chatUserId),
@@ -365,6 +422,7 @@ module.exports = {
                     {
                         "$push": {
                             "topics.$[topic].chats.$[chat].replies": {
+                                _id: replyId,
                                 user: user.id,
                                 username: user.username,
                                 reply: rp,
@@ -385,7 +443,7 @@ module.exports = {
                 // get updated user (which contains the newly created topic)
                 const updatedUser = await User.findOne({ "_id": mongoose.Types.ObjectId(chatUserId) })
                 // return newly created reply
-                return updatedUser.topics.find(({ keyword }) => keyword === kw).chats.find(({ _id }) => String(_id) == String(chatId)).replies.find(({ reply }) => reply === rp)
+                return updatedUser.topics.find(({ keyword }) => keyword === kw).chats.find(({ _id }) => String(_id) == String(chatId)).replies.find(({ _id }) => String(_id) == String(replyId))
 
             } catch (err) {
                 throw new Error(err)
@@ -471,27 +529,33 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        // sendFriendRequest(friendId: String!): String!
-        async sendFriendRequest(_, { friendId }, context) {
+        // sendFriendRequest(friendUsername: String!, friendId: ID!): String!
+        async sendFriendRequest(_, { friendUsername, friendId }, context) {
             const user = checkAuth(context);
 
             // check not self
             if (user.id === friendId) throw new UserInputError("Can't send friend request to self")
 
             // check legit id
-            userExists(friendId)
+            const friend = await User.findOne({ "_id": mongoose.Types.ObjectId(friendId) })
+            if (!friend) {
+                throw new Error('No such user')
+            }
+            // check no friend request sent already
+            if (friend.friendRequests.some(friend=>friend.userId===user.id)) return 'Friend request already sent'
+
 
             // check not already friends
             const alreadyFriends1 = await User.findOne(
-                { "_id": mongoose.Types.ObjectId(user.id), "friends": friendId }
+                { "_id": mongoose.Types.ObjectId(user.id), "friends.userId": friendId }
             )
             const alreadyFriends2 = await User.findOne(
-                { "_id": mongoose.Types.ObjectId(friendId), "friends": user.id }
+                { "_id": mongoose.Types.ObjectId(friendId), "friends.userId": user.id }
             )
             if (alreadyFriends1 && alreadyFriends2) return 'Already friends'
 
-            // check they haven't sent a friend request, in which case just become friends
-            if (await User.findOne({ "_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId })) {
+            // check friend hasn't already sent a friend request back, in which case just become friends
+            if (await User.findOne({ "_id": mongoose.Types.ObjectId(user.id), "friendRequests.userId": friendId })) {
                 // add to friend list
                 const { nModified } = await User.updateOne(
                     {
@@ -499,7 +563,7 @@ module.exports = {
                     },
                     {
                         "$addToSet": {
-                            "friends": friendId
+                            "friends": {"username": friendUsername, "userId": friendId}
                         }
                     }
                 )
@@ -510,7 +574,7 @@ module.exports = {
                     },
                     {
                         "$addToSet": {
-                            "friends": user.id
+                            "friends": {"username": user.username, "userId": user.id}
                         }
                     }
                 )
@@ -530,26 +594,25 @@ module.exports = {
                     },
                     {
                         "$addToSet": {
-                            "friendRequests": user.id
+                            "friendRequests": {"username": user.username, "userId": user.id}
                         }
                     }
                 )
                 syncFriendRelationship(user.id, friendId)
-                if (nModified === 0) return 'Friend request failed, a friend request has most likely already been sent'
+                if (nModified === 0) return 'Friend request failed'
                 else return 'Friend request sent'
             } catch (err) {
                 throw new Error(err);
             }
         },
-        // acceptFriendRequest(friendId: String!): String!
-        async acceptFriendRequest(_, { friendId }, context) {
+        // acceptFriendRequest(friendUsername: String!, friendId: ID!): String!
+        async acceptFriendRequest(_, { friendUsername, friendId }, context) {
             const user = checkAuth(context)
-
             try {
 
                 // check friendId is really in pending friend requests
                 const isPendingFriend = await User.findOne({
-                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId
+                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests.userId": friendId
                 })
                 if (!isPendingFriend) return 'No such pending friend request'
 
@@ -560,7 +623,7 @@ module.exports = {
                     },
                     {
                         "$addToSet": {
-                            "friends": friendId
+                            "friends": {"username": friendUsername, "userId": friendId}
                         }
                     }
                 )
@@ -571,11 +634,11 @@ module.exports = {
                     },
                     {
                         "$addToSet": {
-                            "friends": user.id
+                            "friends": {"username": user.username, "userId": user.id}
                         }
                     }
                 )
-                syncFriendRelationship(user.id, friendId)
+                await syncFriendRelationship(user.id, friendId)
                 const errors = ''
                 if (nModified === 0) errors += 'Adding friend failed, '
                 if (nModified2 === 0) errors += 'Adding to friend\'s friend list failed, '
@@ -586,14 +649,14 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        // rejectFriendRequest(friendId: String!): String!
+        // rejectFriendRequest(friendId: ID!): String!
         async rejectFriendRequest(_, { friendId }, context) {
             const user = checkAuth(context)
 
             try {
                 // check friendId is really in pending friend requests
                 const isPendingFriend = await User.findOne({
-                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests": friendId
+                    "_id": mongoose.Types.ObjectId(user.id), "friendRequests.userId": friendId
                 })
                 if (!isPendingFriend) return 'No such pending friend request'
 
@@ -604,11 +667,11 @@ module.exports = {
                     },
                     {
                         $pull: {
-                            "friendRequests": friendId
+                            "friendRequests": {"userId": friendId}
                         }
                     }
                 )
-                syncFriendRelationship(user.id, friendId)
+                await syncFriendRelationship(user.id, friendId)
                 if (nModified === 0) return 'Failed to reject friend request'
                 else return 'Rejected friend request'
             } catch (err) {
@@ -622,7 +685,7 @@ module.exports = {
             try {
                 // check friendId is really in pending friend requests
                 const isFriend = await User.findOne({
-                    "_id": mongoose.Types.ObjectId(user.id), "friends": friendId
+                    "_id": mongoose.Types.ObjectId(user.id), "friends.userId": friendId
                 })
                 if (!isFriend) return 'No such friend'
 
@@ -633,7 +696,7 @@ module.exports = {
                     },
                     {
                         $pull: {
-                            "friends": friendId
+                            "friends": {"userId": friendId}
                         }
                     }
                 )

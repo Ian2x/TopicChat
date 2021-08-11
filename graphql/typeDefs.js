@@ -2,6 +2,10 @@ const { gql } = require('apollo-server-express')
 
 
 module.exports = gql`
+    type Friend {
+        username: String!
+        userId: ID!
+    }
     type ChatReply {
         id: ID!
         user: ID!
@@ -15,7 +19,9 @@ module.exports = gql`
         username: String!
         chat: String!
         replies: [ChatReply]!
+        replyCount: Int!
         createdAt: String!
+        parentTopic: String
     }
     type Topic {
         id: ID!
@@ -28,8 +34,8 @@ module.exports = gql`
         token: String!
         username: String!
         topics: [Topic]!
-        friends: [String]!
-        friendRequests: [String]!
+        friends: [Friend]!
+        friendRequests: [Friend]!
         createdAt: String!
     }
     input RegisterInput {
@@ -48,6 +54,7 @@ module.exports = gql`
         getUserTopics(username: String!): [Topic]!
         getUserTopicChats(userId: ID!, keyword: String!): [Chat]!
         getGroupChat(keyword: String!): [Chat]!
+        getUserFeed: [Chat]!
         getAllSuggestedTopics: [SuggestedTopic]!
         getNewSuggestedTopics: [String]!
     }
@@ -60,8 +67,8 @@ module.exports = gql`
         deleteTopic(keyword: String!): String!
         deleteChat(keyword: String!, chatId: ID!): String!
         deleteReply(chatUserId: ID!, keyword: String!, chatId: ID!, replyId: ID!, replyUser: ID!): String!
-        sendFriendRequest(friendId: ID!): String!
-        acceptFriendRequest(friendId: ID!): String!
+        sendFriendRequest(friendUsername: String!, friendId: ID!): String!
+        acceptFriendRequest(friendUsername: String!, friendId: ID!): String!
         rejectFriendRequest(friendId: ID!): String!
         removeFriend(friendId: ID!): String!
     }

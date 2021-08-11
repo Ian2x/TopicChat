@@ -70,7 +70,7 @@ function GroupChat(props) {
     const { getGroupChat } = data;
 
     const addedGroupChat = getUser.topics.some(t => t.keyword === keyword)
-    
+    console.log(getGroupChat)
     return (
         <>
             <Header as='h1' icon textAlign='center'>

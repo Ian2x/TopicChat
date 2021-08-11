@@ -1,11 +1,12 @@
 import _ from 'lodash'
 import React, { useContext } from 'react'
-import { Search, Grid, Label, Container, Button } from 'semantic-ui-react'
-import { useQuery } from '@apollo/react-hooks'
+import { Search, Grid, Label, Container } from 'semantic-ui-react'
+import { useQuery} from '@apollo/react-hooks'
 import { Link } from 'react-router-dom'
 
 import { AuthContext } from '../context/auth'
 import { FETCH_ALL_USERS_QUERY } from '../util/graphql'
+// import FriendSearchAddButton from './FriendSearchAddButton'
 
 const initialState = {
     loading: false,
@@ -29,10 +30,31 @@ function exampleReducer(state, action) {
     }
 }
 
-const resultRenderer = ({ title, friendid, friends, friendrequests, viewerid }) => {
-    const friendRequestSent = friendrequests.some(id => id===viewerid)
-    const alreadyFriends = friends.some(id => id===viewerid)
+const ResultRenderer = ({ title, friendid, friends, friendrequests, viewerid }) => {
+    if (friendid===viewerid) {
+        return (
+            <Container>
+                <Label>
+                    {title + ' '}
+                </Label>
+                <div style={{float: 'right', marginTop: '4px'}}>
+                    (self)
+                </div>
+            </Container>
+        )
+    }
 
+    const friendRequestSent = friendrequests.some(friend => friend.userId===viewerid)
+    const alreadyFriends = friends.some(friend => friend.userId===viewerid)
+    /*
+    const handleClick = e => {
+        if (e.target.tagName==='DIV'){
+            window.location.href=`/users/${friendid}`
+        }
+    }
+    */
+
+    // <Container as={Link} to={`/users/${friendid}`}>
     return (
         <Container as={Link} to={`/users/${friendid}`}>
             <Label>
@@ -48,13 +70,13 @@ const resultRenderer = ({ title, friendid, friends, friendrequests, viewerid }) 
                     friends!
                 </div>
             )}
-            {!friendRequestSent && !alreadyFriends && (
-                <Button size='mini' style={{float: 'right'}}>
-                    add friend
-                </Button>
-            )}
         </Container>
     )
+    /*
+        {!friendRequestSent && !alreadyFriends && (
+            <FriendSearchAddButton friendUsername={title} friendId={friendid}/>
+        )}
+    */
 }
 
 function FriendSearch() {
@@ -119,9 +141,10 @@ function FriendSearch() {
                         dispatch({ type: 'UPDATE_SELECTION', selection: data.result.title })
                     }
                     onSearchChange={handleSearchChange}
-                    resultRenderer={resultRenderer}
+                    resultRenderer={ResultRenderer}
                     results={results}
                     value={value}
+                    onSelect={()=>false}
                 />
             </Grid.Column>
 
