@@ -6,11 +6,16 @@ module.exports = gql`
         username: String!
         userId: ID!
     }
+    type Vote {
+        userId: ID!
+        up: Boolean!
+    }
     type ChatReply {
         id: ID!
         user: ID!
         username: String!
         reply: String!
+        votes: [Vote]!
         createdAt: String!
     }
     type Chat {
@@ -18,6 +23,7 @@ module.exports = gql`
         user: ID!
         username: String!
         chat: String!
+        votes: [Vote]!
         replies: [ChatReply]!
         replyCount: Int!
         createdAt: String!
@@ -26,6 +32,7 @@ module.exports = gql`
     type Topic {
         id: ID!
         keyword: String!
+        image: String
         chats: [Chat]!
         chatCount: Int!
     }
@@ -33,6 +40,7 @@ module.exports = gql`
         id: ID!
         token: String!
         username: String!
+        profilePic: String!
         topics: [Topic]!
         friends: [Friend]!
         friendRequests: [Friend]!

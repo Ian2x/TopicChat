@@ -29,12 +29,14 @@ function byReplyCount(a, b) {
     return (a.replyCount < b.replyCount ? 1: ((a.replyCount > b.replyCount) ? -1 : 0))
 }
 
+/*
 async function userExists(userId) {
     const user = await User.findOne({ "_id": mongoose.Types.ObjectId(userId) })
     if (!user) {
         throw new Error('No such user')
     }
 }
+*/
 
 async function syncFriendRelationship(id1, id2) {
     const user1HasFriend = await User.findOne({ $and: [
