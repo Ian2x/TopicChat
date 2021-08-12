@@ -286,6 +286,8 @@ module.exports = {
             const newUser = new User({
                 username,
                 password,
+                profilePic: null,
+                topics: [],
                 friends: [],
                 friendRequests: [],
                 createdAt: new Date().toISOString()
@@ -358,6 +360,7 @@ module.exports = {
                         "topics": {
                             _id: topicId,
                             keyword: kw,
+                            image: null,
                             chats: [],
                             createdAt: new Date().toISOString()
                         }
@@ -396,6 +399,7 @@ module.exports = {
                             user: mongoose.Types.ObjectId(user.id),
                             username: user.username,
                             chat: ct,
+                            votes: [],
                             replies: [],
                             createdAt: new Date().toISOString()
                         }
@@ -429,6 +433,7 @@ module.exports = {
                                 user: user.id,
                                 username: user.username,
                                 reply: rp,
+                                votes: [],
                                 createdAt: new Date().toISOString()
                             }
                         }
