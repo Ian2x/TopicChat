@@ -10,6 +10,7 @@ import FriendSearch from '../components/FriendSearch'
 import FriendSearchAddButton from '../components/FriendSearchAddButton';
 import AcceptRejectFriend from '../components/AcceptRejectFriend'
 import FriendDeleteButton from '../components/FriendDeleteButton'
+import ChatFeed from '../components/ChatFeed'
 
 function UserProfile(props) {
     const userId = props.match.params.userId;
@@ -145,6 +146,9 @@ function UserProfile(props) {
                             </Header>
                         </Grid.Column>)
                 }
+            </Grid.Row>
+            <Grid.Row>
+                <ChatFeed/>
             </Grid.Row>
         </Grid>
     )

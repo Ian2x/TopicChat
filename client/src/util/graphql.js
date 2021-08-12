@@ -85,7 +85,13 @@ mutation createTopic($keyword: String!) {
             user
             username
             chat
-            replies
+            replies {
+                id
+                user
+                username
+                reply
+                createdAt
+            }
             replyCount
             createdAt
             parentTopic
