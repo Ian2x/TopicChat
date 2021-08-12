@@ -76,7 +76,6 @@ async function syncFriendRelationship(id1, id2) {
     }
     // remove pending requests if friends already
     if (user1HasFriend && user2HasFriend) {
-        console.log("Got in")
         await User.updateOne(
             {
                 "_id": mongoose.Types.ObjectId(id1)
@@ -343,7 +342,8 @@ module.exports = {
             const fullUser = await User.findOne({ "_id": mongoose.Types.ObjectId(user.id) })
             // getUser.topics.some(t => t.keyword === keyword)
             if(fullUser.topics.some(t=>t.keyword === kw)) {
-                throw new Error('Topic already added')
+                errors.keyword = 'Topic already added'
+                throw new UserInputError('Topic already added', { errors })
             }
 
             topicId = mongoose.Types.ObjectId();

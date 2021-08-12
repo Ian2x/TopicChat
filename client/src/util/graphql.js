@@ -6,9 +6,24 @@ export const FETCH_ALL_USERS_QUERY = gql`
             id
             username
             topics {
+                keyword
                 chats {
+                    id
+                    user
+                    username
                     chat
+                    replies {
+                        id
+                        user
+                        username
+                        reply
+                        createdAt
+                    }
+                    replyCount
+                    createdAt
+                    parentTopic
                 }
+                chatCount
             }
             friends {
                 username
@@ -33,13 +48,18 @@ query getUser($userId: ID!) {
             chats {
                 id
                 user
+                username
                 chat
                 replies {
+                    id
                     user
+                    username
                     reply
                     createdAt
                 }
+                replyCount
                 createdAt
+                parentTopic
             }
             chatCount
         }
@@ -62,6 +82,7 @@ query getGroupChat($keyword: String!) {
         id
         user
         username
+        chat
         replies {
             id
             user
@@ -69,8 +90,9 @@ query getGroupChat($keyword: String!) {
             reply
             createdAt
         }
-        chat
+        replyCount
         createdAt
+        parentTopic
     }
 }
 `

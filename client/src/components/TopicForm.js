@@ -21,6 +21,8 @@ function TopicForm() {
     const [createTopic] = useMutation(CREATE_TOPIC_MUTATION, {
         variables: values,
         update(cache, result) {
+            console.log("LOOOOOOOK")
+            console.log(result)
             const data = _.cloneDeep(
                 cache.readQuery({
                     query: FETCH_USER_QUERY,
@@ -44,8 +46,7 @@ function TopicForm() {
 
         refetchQueries: [
             {
-                query: FETCH_USER_QUERY
-                ,
+                query: FETCH_USER_QUERY,
                 variables: {userId: user.id}
             }
         ]
