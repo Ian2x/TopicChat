@@ -250,7 +250,7 @@ module.exports = {
             }
         },
         
-        // getNewSuggestedTopics: [String]!
+        // getNewSuggestedTopics: [SuggestedTopic]!
         async getNewSuggestedTopics(_, {}, context) {
             try {
                 var user = checkAuth(context)

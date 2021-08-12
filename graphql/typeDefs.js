@@ -56,7 +56,7 @@ module.exports = gql`
         getGroupChat(keyword: String!): [Chat]!
         getUserFeed: [Chat]!
         getAllSuggestedTopics: [SuggestedTopic]!
-        getNewSuggestedTopics: [String]!
+        getNewSuggestedTopics: [SuggestedTopic]!
     }
     type Mutation {
         register(registerInput: RegisterInput!): User!

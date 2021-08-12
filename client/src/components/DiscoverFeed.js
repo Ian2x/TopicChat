@@ -13,11 +13,11 @@ function DiscoverFeed() {
 
     const { user } = useContext(AuthContext);
 
-    const { loading, data } = useQuery(FETCH_USER_FEED_QUERY, {
+    const { loading, data } = useQuery(FETCH_NEW_SUGGESTED_TOPICS_QUERY, {
         variables: { },
     })
 
-    if (loading) return 'Loading feed...';
+    if (loading) return 'Loading topic sug...';
     console.log(data)
     const { getUserFeed } = data
     console.log(getUserFeed)
@@ -91,23 +91,11 @@ function DiscoverFeed() {
 }
 
 
-const FETCH_USER_FEED_QUERY = gql`
-    query getUserFeed {
-        getUserFeed {
-            id
-            user
-            username
-            replies {
-                id
-                user
-                username
-                reply
-                createdAt
-            }
-            replyCount
-            chat
-            createdAt
-            parentTopic
+const FETCH_NEW_SUGGESTED_TOPICS_QUERY = gql`
+    query getNewSuggestedTopics {
+        getNewSuggestedTopics {
+            keyword
+            totalChats
         }
     }
 `
