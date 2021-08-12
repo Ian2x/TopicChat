@@ -18,27 +18,22 @@ function ChatFeed() {
     })
 
     if (loading) return 'Loading feed...';
-    console.log(data)
     const { getUserFeed } = data
-    console.log(getUserFeed)
     return (
         <Grid>
             <Grid.Column>
                 <Header as='h1' icon textAlign='center'>
                     <Header.Content>Your feed: </Header.Content>
                 </Header>
-                <List divided relaxed style={{ height: '700px', width: '600px', overflow: 'scroll' }}>
+                <List divided relaxed style={{ height: '700px', width: '400px', overflow: 'scroll' }}>
                     {
                         getUserFeed && getUserFeed.map(chat=> (
                             <List.Item key={chat.id}>
-                                <List.Header as={Link} to={`/users/${user.id}/${chat.parentTopic}`}>
-                                    {chat.parentTopic}
-                                </List.Header>
                                 <List.Content style={{ padding: '5px' }}>
                                     <Message color='teal' style={{ paddingBottom: '15px' }}>
-                                        <Message.Header>
-                                            {chat.chat}
-                                        </Message.Header>
+                                        <Message.Item as={Link} to={`/users/${user.id}/${chat.parentTopic}`}>
+                                            {chat.parentTopic}
+                                        </Message.Item>
                                         <Message.Item>
                                             <div style={{ float: 'left' }}>
                                                 {chat.username}
@@ -53,7 +48,10 @@ function ChatFeed() {
                                                 &nbsp;| number of replies: {chat.replyCount}
                                             </div>
                                         </Message.Item>
-                                        <br />
+                                        <br/>
+                                        <Message.Header>
+                                            {chat.chat}
+                                        </Message.Header>
                                         <Divider />
                                         <Message.Item>
                                             {
@@ -78,6 +76,7 @@ function ChatFeed() {
                                             {user && user.id === chat.user && (
                                                 <ChatDeleteButton keyword={chat.parentTopic} chatId={chat.id} />)}
                                         </Message.Item>
+                                        
 
                                     </Message>
                                 </List.Content>

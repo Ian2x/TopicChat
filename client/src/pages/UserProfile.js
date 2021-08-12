@@ -11,6 +11,7 @@ import FriendSearchAddButton from '../components/FriendSearchAddButton';
 import AcceptRejectFriend from '../components/AcceptRejectFriend'
 import FriendDeleteButton from '../components/FriendDeleteButton'
 import ChatFeed from '../components/ChatFeed'
+import DiscoverFeed from '../components/DiscoverFeed'
 
 function UserProfile(props) {
     const userId = props.match.params.userId;
@@ -147,8 +148,13 @@ function UserProfile(props) {
                         </Grid.Column>)
                 }
             </Grid.Row>
-            <Grid.Row>
-                <ChatFeed/>
+            <Grid.Row columns={2}>
+                <Grid.Column>
+                    <ChatFeed/>
+                </Grid.Column>
+                <Grid.Column>
+                    <DiscoverFeed/>
+                </Grid.Column>
             </Grid.Row>
         </Grid>
     )

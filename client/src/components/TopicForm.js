@@ -40,7 +40,6 @@ function TopicForm() {
             setErrors('')           
         },
         onError(err) {
-            console.log(err)
             setErrors(err.graphQLErrors[0].extensions.errors);
         },
 
