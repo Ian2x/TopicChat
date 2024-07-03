@@ -1,1 +1,1 @@
-Experimental MERNG web dev social media app
+Experimental MERNG stack social media app
